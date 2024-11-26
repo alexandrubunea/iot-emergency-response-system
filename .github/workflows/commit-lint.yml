@@ -1,0 +1,19 @@
+name: Lint Commit Messages
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.1.2
+
+      - name: Lint commit messages
+        uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: './commitlint.config.js'
