@@ -1,0 +1,42 @@
+---
+config:
+  theme: base
+---
+classDiagram
+    class Location {
+        -id: unique int
+        -city: string
+        -street: string
+        -apartment: string
+        -floor: string
+        -number: int
+        +getLocation()
+    }
+    class Business {
+        -id: unique int
+        -name: string
+        -location: Location
+        -phone: string
+        -esp32_identifier: hash
+        +getName()
+        +validateIdentifier(string)
+        +getEvents()
+    }
+    Location --* Business
+    class EventType {
+        -id: unique int
+        -name: string
+        -level: int
+        getName()
+        getLevel()
+    }
+    class Event {
+        -id: unique int
+        -type: EventType
+        -date: datetime
+        -business: Business
+        +alertAuthorities()
+        +alertSupportTeam()
+    }
+    EventType --o Event
+    Event --* Business

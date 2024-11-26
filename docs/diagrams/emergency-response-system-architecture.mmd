@@ -1,0 +1,24 @@
+---
+config:
+  layout: elk
+  look: handDrawn
+  theme: default
+---
+flowchart LR
+    subgraph Business Network
+        Sensors@{ shape: lean-r, label: "Sensors" }
+        ESP32@{ shape: lin-cyl, label: "ESP32 Microcontroller" }
+        Sensors -->|Wired Connection|ESP32
+    end
+    subgraph Internet
+        Package@{ shape: processes, label: "Package" }
+    end
+    ESP32 -. Send .-> Package
+    subgraph Communication Center
+        Server@{ shape: lin-cyl, label: "Server" }
+        Database[(Database)]
+        Server -->|Store| Database
+    end
+    Package -. Receive .-> Server
+    Server -. Contact .-> PublicServices[Public Services]
+    Server -. Alert .-> SupportTeam[Support Team]

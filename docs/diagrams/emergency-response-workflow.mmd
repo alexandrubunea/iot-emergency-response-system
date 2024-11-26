@@ -1,0 +1,68 @@
+---
+config:
+  look: handDrawn
+  theme: default
+  layout: elk
+---
+flowchart LR
+    subgraph Business
+        ESP32[ESP32 Microcontroller]
+        ReqIntervention[Request Intervention]
+        subgraph Sensors
+            Smoke[Smoke Detector]
+            Motion[Motion Detector]
+            Sound[Sound Detector]
+        end
+        subgraph ECheckMal[Event: Malfunction Detector]
+            MalfunctionCheck{Check for Malfunction}
+            MalfunctionFound[Malfunction Found]
+            NoMalfunction[No Malfunction]
+            MalfunctionCheck --> MalfunctionFound
+            MalfunctionCheck --> NoMalfunction
+        end
+        subgraph EmergencyDetector[Emergency Detector]
+            subgraph ECheckIntruder[Event: Intruder Detector]
+                CheckIntruder{Check for intruder}
+                NoIntruder[No Intruder]
+                IntruderFound[Intruder Found]
+                CheckIntruder --> IntruderFound
+                CheckIntruder --> NoIntruder
+            end
+            subgraph ECheckFire[Event: Fire Detector]
+                CheckFire{Check for Fire}
+                NoFire[No Fire]
+                FireFound[Fire Found]
+                CheckFire --> FireFound
+                CheckFire --> NoFire
+            end
+        end
+        Sensors -->|Sends data| ESP32
+        ESP32 -->|Check for malfunction| ECheckMal
+        NoMalfunction -->|Check for emergency| EmergencyDetector
+        IntruderFound -->|Send Intruder Alarm| ReqIntervention
+        FireFound -->|Send Fire Alarm| ReqIntervention
+    end
+    subgraph Support[Support Team]
+        Malfunction[Malfunction]
+        Configurator[Configurator]
+        Security[Security]
+    end
+    Malfunction -->|Fix malfunction| Business
+    Configurator -->|Set up| Business
+    Configurator -->|Add Business| Database
+    Security -->|Intervene| Business
+    subgraph Center[Control Center]
+        Communication((Communication Node))
+        Database[(Database of Businesses)]
+        Communication -->|Logs Activity | Database
+    end
+    MalfunctionFound -->|Request Support Team| Communication
+    ReqIntervention -->|Request Intervention| Communication
+    Communication -->|Notice malfunction| Support
+    subgraph PublicServices[Public Services]
+    FireDepartment[Fire Department]
+    PoliceDepartment[Police Department]
+    end
+    Communication -->|Contact Authorities| PublicServices
+    PublicServices -->|Intervene| Business
+    Communication -->|Notice emergency| Security
