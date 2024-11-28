@@ -12,12 +12,22 @@ classDiagram
         -number: int
         +getLocation()
     }
+    class Microcontroller {
+        -id: unique int
+        -name: string
+        -motionSensor: bool
+        -soundSensor: bool
+        -gasSensor: bool
+        -esp32_identifier: hash
+        -business: Business
+        +sendData()
+        +toggleSensor(string)
+    }
     class Business {
         -id: unique int
         -name: string
         -location: Location
         -phone: string
-        -esp32_identifier: hash
         +getName()
         +validateIdentifier(string)
         +getEvents()
@@ -34,9 +44,10 @@ classDiagram
         -id: unique int
         -type: EventType
         -date: datetime
-        -business: Business
+        -microcontroller: Microcontroller
         +alertAuthorities()
         +alertSupportTeam()
     }
     EventType --o Event
-    Event --* Business
+    Event --* Microcontroller
+    Microcontroller --* Business
