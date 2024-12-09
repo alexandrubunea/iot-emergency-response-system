@@ -17,6 +17,8 @@
 
 #include <driver/gpio.h>
 
+#include "esp_log.h"
+#include "config.hpp"
 #include "sensors/MotionSensor.hpp"
 
 MotionSensor::MotionSensor(gpio_num_t pin): m_pin(pin) {
@@ -25,16 +27,17 @@ MotionSensor::MotionSensor(gpio_num_t pin): m_pin(pin) {
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE
+        .intr_type = GPIO_INTR_POSEDGE
     };
 
     gpio_config(&io_conf);
+
+    LOGI("MotionSensor", "Motion sensor initialized");
 }
 
-void MotionSensor::read() {
-    m_motion = gpio_get_level(m_pin);
-}
+void MotionSensor::attachInterrupt(void (*handler)(void*), void* args) {
+    gpio_install_isr_service(ESP_INTR_FLAG_LEVEL1);
+    gpio_isr_handler_add(m_pin, handler, args);
 
-bool MotionSensor::motionDetected() {
-    return m_motion;
+    LOGI("MotionSensor", "Interrupt attached to motion sensor");
 }

@@ -15,4 +15,50 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "esp_log.h"
+
+#include "config.hpp"
 #include "events/MotionEvent.hpp"
+
+MotionEvent::MotionEvent(std::unique_ptr<MotionSensor> &sensor) {
+    m_sensor = std::move(sensor);
+    m_sensor->attachInterrupt(MotionEvent::m_trigger, this);
+    LOGI("MotionEvent", "Motion event attached to sensor");
+
+    m_task = nullptr;
+    m_queue = xQueueCreate(10, sizeof(uint32_t));
+    if(m_queue == NULL)
+        LOGI("MotionEvent", "Failed to create queue");
+
+    xTaskCreate(&MotionEvent::m_handle, "MotionEvent", 2048, this, 1, nullptr);
+}
+
+MotionEvent::~MotionEvent() {
+    vQueueDelete(m_queue);
+}
+
+void MotionEvent::m_trigger(void *args) {
+    uint32_t event = 1;
+
+    MotionEvent *motionEvent = static_cast<MotionEvent*>(args);
+    BaseType_t res = xQueueSendFromISR(motionEvent->m_queue, &event, 0);
+
+    if(res == errQUEUE_FULL)
+        LOGI("MotionEvent", "Queue is full, unable to send event");
+}
+
+void MotionEvent::m_handle(void *args) {
+    uint32_t event = 0;
+
+    MotionEvent *motionEvent = static_cast<MotionEvent*>(args);
+    
+    while(true) {
+        if(xQueueReceive(motionEvent->m_queue, &event, portMAX_DELAY)) {
+            LOGI("MotionEvent", "Motion detected, processing event");
+
+            // To be implemented
+        }
+
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
+}

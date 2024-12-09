@@ -16,3 +16,24 @@
  */
 
 #pragma once
+
+#include <memory>
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <freertos/queue.h>
+
+#include "sensors/MotionSensor.hpp"
+
+class MotionEvent {
+    public:
+        MotionEvent(std::unique_ptr<MotionSensor> &sensor);
+        ~MotionEvent();
+    private:
+        std::unique_ptr<MotionSensor> m_sensor;
+        QueueHandle_t m_queue;
+        TaskHandle_t m_task;
+        
+        static void m_trigger(void *args);
+        static void m_handle(void *args);
+};

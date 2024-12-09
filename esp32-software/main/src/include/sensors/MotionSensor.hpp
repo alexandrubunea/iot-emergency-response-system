@@ -23,10 +23,7 @@ class MotionSensor {
     public:
         MotionSensor(gpio_num_t pin);
         
-        void read();
-
-        bool motionDetected();
+        void attachInterrupt(void (*handler)(void*), void* args);
     private:
         gpio_num_t m_pin;
-        bool m_motion;
 };
