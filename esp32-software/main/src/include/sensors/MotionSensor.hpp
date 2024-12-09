@@ -16,6 +16,3 @@
  */
 
 #pragma once
-
-#include "interfaces/ISensor.hpp"
-

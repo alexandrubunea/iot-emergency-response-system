@@ -16,5 +16,3 @@
  */
 
 #pragma once
-
-#include "interfaces/IEvent.hpp"
