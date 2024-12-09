@@ -16,3 +16,17 @@
  */
 
 #pragma once
+
+#include <driver/gpio.h>
+
+class MotionSensor {
+    public:
+        MotionSensor(gpio_num_t pin);
+        
+        void read();
+
+        bool motionDetected();
+    private:
+        gpio_num_t m_pin;
+        bool m_motion;
+};

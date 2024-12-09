@@ -7,11 +7,5 @@
 
 extern "C" void app_main(void)
 {
-    char *taskName = pcTaskGetName(NULL);
-    ESP_LOGI(taskName, "Hello, world!\n");
-    
-    while (1)
-    {
-        ;;
-    }
+
 }
