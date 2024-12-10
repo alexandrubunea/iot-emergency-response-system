@@ -20,12 +20,13 @@
 #include "config.hpp"
 #include "events/MotionEvent.hpp"
 
-MotionEvent::MotionEvent(std::unique_ptr<MotionSensor> &sensor) {
+MotionEvent::MotionEvent(std::unique_ptr<MotionSensor> &sensor)
+    : m_times(0), m_last_trigger_time(0) {
+    
     m_sensor = std::move(sensor);
     m_sensor->attachInterrupt(MotionEvent::m_trigger, this);
     LOGI("MotionEvent", "Motion event attached to sensor");
 
-    m_task = nullptr;
     m_queue = xQueueCreate(10, sizeof(uint32_t));
     if(m_queue == NULL)
         LOGI("MotionEvent", "Failed to create queue");
@@ -38,9 +39,29 @@ MotionEvent::~MotionEvent() {
 }
 
 void MotionEvent::m_trigger(void *args) {
+    // GPIO Interrupts are very strict, so we need to keep this function as short as possible
+    // We can't use any logging functions here, it will crash the program
+
     uint32_t event = 1;
 
     MotionEvent *motionEvent = static_cast<MotionEvent*>(args);
+    
+    uint32_t now = xTaskGetTickCount() * portTICK_PERIOD_MS;
+    if(now - motionEvent->m_last_trigger_time > MOTION_EVENT_TIMEFRAME_TRIGGERS) {
+        motionEvent->m_times = 1; // The value is 1 because the current trigger should be counted
+        motionEvent->m_last_trigger_time = now;
+
+        return;
+    }
+
+    motionEvent->m_times++;
+    if(motionEvent->m_times < MOTION_EVENT_REQUIRED_TRIGGERS) 
+        return;
+
+
+    motionEvent->m_times = 0;
+    motionEvent->m_last_trigger_time = now;
+
     BaseType_t res = xQueueSendFromISR(motionEvent->m_queue, &event, 0);
 
     if(res == errQUEUE_FULL)

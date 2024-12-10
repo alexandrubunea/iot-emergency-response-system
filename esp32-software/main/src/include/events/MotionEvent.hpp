@@ -32,7 +32,8 @@ class MotionEvent {
     private:
         std::unique_ptr<MotionSensor> m_sensor;
         QueueHandle_t m_queue;
-        TaskHandle_t m_task;
+        uint8_t m_times;
+        uint32_t m_last_trigger_time;
         
         static void m_trigger(void *args);
         static void m_handle(void *args);

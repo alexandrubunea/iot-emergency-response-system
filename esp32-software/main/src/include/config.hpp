@@ -5,3 +5,6 @@
 #else
     #define     LOGI(tag, text)
 #endif
+
+#define    MOTION_EVENT_REQUIRED_TRIGGERS    2
+#define    MOTION_EVENT_TIMEFRAME_TRIGGERS    20000
