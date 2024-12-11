@@ -17,7 +17,7 @@
 
 #include "esp_log.h"
 
-#include "config.hpp"
+#include "Configuration.hpp"
 #include "events/MotionEvent.hpp"
 
 MotionEvent::MotionEvent(std::unique_ptr<MotionSensor> &sensor)

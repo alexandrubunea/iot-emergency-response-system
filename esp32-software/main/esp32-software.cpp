@@ -5,8 +5,8 @@
 #include <freertos/task.h>
 
 #include "esp_log.h"
-#include "config.hpp"
 
+#include "Configuration.hpp"
 #include "sensors/MotionSensor.hpp"
 #include "events/MotionEvent.hpp"
 
@@ -14,6 +14,18 @@ extern "C" void app_main(void)
 {
     LOGI("Main", "ESP32 software started");
     
+    Configuration configuration;
+
+    while(configuration.getFlag() == CONFIGURATION_IN_PROCESS) {
+        LOGI("Main", "Waiting for configuration to finish");
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+
+    if(configuration.getFlag() == CONFIGURATION_ERROR) {
+        LOGI("Main", "Configuration error, ESP32 will not start.");
+        return;
+    }
+
     std::unique_ptr<MotionSensor> motionSensor = std::make_unique<MotionSensor>(GPIO_NUM_21);
     MotionEvent event(motionSensor);
 

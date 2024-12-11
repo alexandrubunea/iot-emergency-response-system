@@ -18,7 +18,7 @@
 #include <driver/gpio.h>
 
 #include "esp_log.h"
-#include "config.hpp"
+#include "Configuration.hpp"
 #include "sensors/MotionSensor.hpp"
 
 MotionSensor::MotionSensor(gpio_num_t pin): m_pin(pin) {
