@@ -1,9 +1,11 @@
 from flask import Flask
+
 app = Flask(__name__)
 
-@app.route('/')
-def hello_world():  # put application's code here
-    return 'Hello World!'
+@app.route('/api/register-esp32', methods=['POST'])
+def register_esp32():
+    # Logic to register ESP32 device will be implemented here
+    return 'WIP'
 
 if __name__ == '__main__':
     app.run()
