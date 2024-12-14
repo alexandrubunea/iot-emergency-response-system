@@ -30,6 +30,9 @@ def check_device_connection():
 
     return res.status_code == 200
 
+def check_wifi_credentials(wifi_ssid, wifi_password):
+    return False
+
 def generate_secure_sha512_hash():
     random_uuid = str(uuid.uuid4())
     key = hashlib.sha512(random_uuid.encode()).hexdigest()
@@ -72,11 +75,31 @@ if __name__ == '__main__':
         print('Business does not exist')
         exit(1)
 
-    settings['device_location'] = input('Please enter the device location [Example: "Main Entrance", "Safe Room"]: ')
-    settings['motion_detection'] = bool(input('Does the device have motion detection? [yes/no]: ').lower() == 'yes')
-    settings['gas_detection'] = bool(input('Does the device have gas detection? [yes/no]: ').lower() == 'yes')
-    settings['sound_detection'] = bool(input('Does the device have sound detection? [yes/no]: ').lower() == 'yes')
-    settings['fire_detection'] = bool(input('Does the device have fire detection? [yes/no]: ').lower() == 'yes')
+    settings['device_location'] = input('Please enter the device location [Example: "Main Entrance", "Safe Room"]: ').lower()
+
+    while not (settings['motion_detection'] == 'yes' or settings['motion_detection'] == 'no'):
+        settings['motion_detection'] = bool(input('Does the device have motion detection? [yes/no]: ').lower() == 'yes')
+
+    while not (settings['gas_detection'] == 'yes' or settings['gas_detection'] == 'no'):
+        settings['gas_detection'] = bool(input('Does the device have gas detection? [yes/no]: ').lower() == 'yes')
+
+    while not (settings['sound_detection'] == 'yes' or settings['sound_detection'] == 'no'):
+        settings['sound_detection'] = bool(input('Does the device have sound detection? [yes/no]: ').lower() == 'yes')
+
+    while not (settings['fire_detection'] == 'yes' or settings['fire_detection'] == 'no'):
+        settings['fire_detection'] = bool(input('Does the device have fire detection? [yes/no]: ').lower() == 'yes')
+
+    print('Please enter the WiFi credentials so that the device can connect to the network and communicate with the communication node')
+    while True:
+        settings['wifi_ssid'] = input('Please enter the WiFi SSID: ')
+        settings['wifi_password'] = input('Please enter the WiFi password: ')
+
+        if check_wifi_credentials(settings['wifi_ssid'], settings['wifi_password']):
+            break
+        else:
+            print('Invalid WiFi credentials, please try again')
+
+
     settings['hash_id'] = generate_secure_sha512_hash()
 
     if not upload_settings_to_communication_node(settings):
@@ -85,18 +108,13 @@ if __name__ == '__main__':
     print('Settings uploaded to the communication node')
 
     print('Please connect to the ESP32 device\nThe default SSID is "ESP32" and the password is "admin1234"')
-    print('After connecting to the device, an unique device ID will be created and stored in the device and the communication node database')
-    print('Please, after connecting to the device, DO NOT QUIT THIS SCRIPT and FOLLOW THE INSTRUCTIONS')
-    
     while not check_device_connection():
         time.sleep(3)
-        
-    print('Device connected')
 
     print('Embedding settings to the device...')
     if not embed_settings_to_device(settings):
         print('Failed to embed settings to the device')
         exit(1)
-    
+
     print('Settings embedded to the device')
     print('Device registration completed successfully')

@@ -14,5 +14,9 @@ def validate_employee_auth_token():
 def business_exists(business_id):
     return Response('{"status":"success"}', status=200, mimetype='application/json')
 
+@app.route('/api/validate_device_registration', methods=['POST'])
+def validate_device_registration():
+    return Response('{"status":"success"}', status=200, mimetype='application/json')
+
 if __name__ == '__main__':
     app.run()
