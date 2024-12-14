@@ -65,19 +65,19 @@ if __name__ == '__main__':
         print('Invalid employee authentication token')
         exit(1)
 
-    settings = {}
+    settings = dict.fromkeys(['business_id', 'device_location', 'motion_dection', 'gas_detection', 'sound_detection', 'fire_detection', 'hash_id'])
 
-    settings.business_id = int(input('Please enter the business ID: '))
-    if not check_if_business_exists(settings.business_id):
+    settings['business_id'] = int(input('Please enter the business ID: '))
+    if not check_if_business_exists(settings['business_id']):
         print('Business does not exist')
         exit(1)
 
-    settings.device_location = input('Please enter the device location: [Example: "Main Entrance", "Safe Room"]')
-    settings.motion_detection = bool(input('Does the device have motion detection? [yes/no]: ').lower() == 'yes')
-    settings.gas_detection = bool(input('Does the device have gas detection? [yes/no]: ').lower() == 'yes')
-    settings.sound_detection = bool(input('Does the device have sound detection? [yes/no]: ').lower() == 'yes')
-    settings.fire_detection = bool(input('Does the device have fire detection? [yes/no]: ').lower() == 'yes')
-    settings.hash_id = generate_secure_sha512_hash()
+    settings['device_location'] = input('Please enter the device location [Example: "Main Entrance", "Safe Room"]: ')
+    settings['motion_detection'] = bool(input('Does the device have motion detection? [yes/no]: ').lower() == 'yes')
+    settings['gas_detection'] = bool(input('Does the device have gas detection? [yes/no]: ').lower() == 'yes')
+    settings['sound_detection'] = bool(input('Does the device have sound detection? [yes/no]: ').lower() == 'yes')
+    settings['fire_detection'] = bool(input('Does the device have fire detection? [yes/no]: ').lower() == 'yes')
+    settings['hash_id'] = generate_secure_sha512_hash()
 
     if not upload_settings_to_communication_node(settings):
         print('Failed to upload settings to the communication node')
@@ -87,14 +87,16 @@ if __name__ == '__main__':
     print('Please connect to the ESP32 device\nThe default SSID is "ESP32" and the password is "admin1234"')
     print('After connecting to the device, an unique device ID will be created and stored in the device and the communication node database')
     print('Please, after connecting to the device, DO NOT QUIT THIS SCRIPT and FOLLOW THE INSTRUCTIONS')
+    
     while not check_device_connection():
-        print('Waiting for device connection...')
         time.sleep(3)
+        
     print('Device connected')
 
     print('Embedding settings to the device...')
     if not embed_settings_to_device(settings):
         print('Failed to embed settings to the device')
         exit(1)
+    
     print('Settings embedded to the device')
     print('Device registration completed successfully')
