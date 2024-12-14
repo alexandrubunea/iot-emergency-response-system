@@ -65,7 +65,7 @@ if __name__ == '__main__':
         print('Invalid employee authentication token')
         exit(1)
 
-    settings = dict.fromkeys(['business_id', 'device_location', 'motion_dection', 'gas_detection', 'sound_detection', 'fire_detection', 'hash_id'])
+    settings = dict.fromkeys(['business_id', 'device_location', 'motion_detection', 'gas_detection', 'sound_detection', 'fire_detection', 'hash_id'])
 
     settings['business_id'] = int(input('Please enter the business ID: '))
     if not check_if_business_exists(settings['business_id']):
