@@ -17,9 +17,10 @@
 #pragma once
 
 #include "esp_log.h"
+#include "esp_event.h"
+#include "esp_http_server.h"
 #include "nvs_flash.h"
 #include "nvs.h"
-#include "esp_event.h"
 
 #define     DEBUG_MODE                          1
 
@@ -31,6 +32,7 @@
 #define     CONFIGURATION_AP_PASSWORD           "admin1234"
 #define     CONFIGURATION_AP_CHANNEL            2
 #define     CONFIGURATION_AP_MAX_CONNECTIONS    1
+#define     CONFIGURATION_SSID_HIDDEN           0
 
 #define     MOTION_EVENT_REQUIRED_TRIGGERS      2
 #define     MOTION_EVENT_TIMEFRAME_TRIGGERS     20000
@@ -50,12 +52,15 @@ class Configuration {
     private:
         nvs_handle_t m_nvs_handle;
         uint8_t m_flag;
+        httpd_handle_t m_server;
 
         bool m_is_configured();
         void m_setup();
         void m_start_ap();
         void m_start_webserver();
         void m_load();
+
+        esp_err_t static m_post_config_handler(httpd_req_t* request);
 
         void static m_wifi_event_handler(
             void* arg, 

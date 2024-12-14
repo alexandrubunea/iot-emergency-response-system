@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "esp_wifi.h"
+#include "cJSON.h"
 
 Configuration::Configuration() {
     esp_err_t err;
@@ -51,6 +52,12 @@ Configuration::Configuration() {
 
 Configuration::~Configuration() {
     nvs_close(m_nvs_handle);
+    if(m_server) httpd_stop(m_server);
+}
+
+
+uint8_t Configuration::getFlag() {
+    return m_flag;
 }
 
 bool Configuration::m_is_configured() {
@@ -79,6 +86,56 @@ void Configuration::m_setup() {
     m_flag = CONFIGURATION_IN_PROCESS;
 
     m_start_ap();
+    m_start_webserver();
+}
+
+void Configuration::m_start_webserver() {
+    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    m_server = NULL;
+
+    if(httpd_start(&m_server, &config) != ESP_OK) {
+        LOGI("Configuration", "Error starting HTTP server");
+        m_flag = CONFIGURATION_ERROR;
+        return;
+    }
+
+    httpd_uri_t post_uri = {
+        .uri = "/api/config",
+        .method = HTTP_POST,
+        .handler = m_post_config_handler,
+        .user_ctx = NULL
+    };
+
+    httpd_register_uri_handler(m_server, &post_uri);
+}
+
+esp_err_t Configuration::m_post_config_handler(httpd_req_t* request) {
+    char content[256];
+    size_t content_length = request->content_len;
+    int ret = httpd_req_recv(request, content, content_length);
+
+    if(ret <= 0) {
+        if(ret == HTTPD_SOCK_ERR_TIMEOUT) {
+            httpd_resp_send_408(request);
+        }
+
+        return ESP_FAIL;
+    }
+
+    cJSON* root = cJSON_Parse(content);
+    if(root == NULL) {
+        LOGI("WebServer", "Error parsing JSON");
+        httpd_resp_send_custom_err(request, "400", "Invalid JSON");
+        return ESP_FAIL;
+    }
+
+    // Keys to be parsed...
+
+    cJSON_Delete(root);
+    const char* response = "{\"status\": \"ok\"}";
+    httpd_resp_send(request, response, strlen(response));
+
+    return ESP_OK;
 }
 
 void Configuration::m_start_ap() {
@@ -125,7 +182,7 @@ void Configuration::m_start_ap() {
             .ssid_len = strlen(CONFIGURATION_AP_SSID),
             .channel = CONFIGURATION_AP_CHANNEL,
             .authmode = WIFI_AUTH_WPA3_PSK,
-            .ssid_hidden = 0,
+            .ssid_hidden = CONFIGURATION_SSID_HIDDEN,
             .max_connection = CONFIGURATION_AP_MAX_CONNECTIONS,
             .beacon_interval = 100,
             .csa_count = 0,
@@ -160,10 +217,6 @@ void Configuration::m_start_ap() {
         m_flag = CONFIGURATION_ERROR;
         return;
     }
-}
-
-uint8_t Configuration::getFlag() {
-    return m_flag;
 }
 
 void Configuration::m_wifi_event_handler(
