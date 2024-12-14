@@ -19,6 +19,8 @@
 #include <string.h>
 
 #include "esp_wifi.h"
+#include "esp_netif.h"
+#include "lwip/inet.h"
 #include "cJSON.h"
 
 Configuration::Configuration() {
@@ -100,17 +102,25 @@ void Configuration::m_start_webserver() {
     }
 
     httpd_uri_t post_uri = {
-        .uri = "/api/config",
+        .uri = "/api/embed_settings",
         .method = HTTP_POST,
         .handler = m_post_config_handler,
         .user_ctx = NULL
     };
 
+    httpd_uri_t get_uri = {
+        .uri = "/api/check_connection",
+        .method = HTTP_GET,
+        .handler = m_get_check_connection_handler,
+        .user_ctx = NULL
+    };
+
     httpd_register_uri_handler(m_server, &post_uri);
+    httpd_register_uri_handler(m_server, &get_uri);
 }
 
 esp_err_t Configuration::m_post_config_handler(httpd_req_t* request) {
-    char content[256];
+    char content[512];
     size_t content_length = request->content_len;
     int ret = httpd_req_recv(request, content, content_length);
 
@@ -129,11 +139,31 @@ esp_err_t Configuration::m_post_config_handler(httpd_req_t* request) {
         return ESP_FAIL;
     }
 
-    // Keys to be parsed...
+    cJSON* hash_id = cJSON_GetObjectItem(root, "hash_id");
+    if (cJSON_IsString(hash_id)) {
+        LOGI("WebServer", "Hash ID: %s", hash_id->valuestring);
+    } else {
+        LOGI("WebServer", "Hash ID not found");
+    }
 
     cJSON_Delete(root);
-    const char* response = "{\"status\": \"ok\"}";
+
+    const char* response = "{\"status\": \"sucesss\"}";
+
+    httpd_resp_set_status(request, "200 OK");
+    httpd_resp_set_type(request, "application/json");
     httpd_resp_send(request, response, strlen(response));
+
+    return ESP_OK;
+}
+
+esp_err_t Configuration::m_get_check_connection_handler(httpd_req_t* request) {
+    const char* response = "{\"status\": \"sucesss\"}";
+
+    httpd_resp_set_status(request, "200 OK");
+    httpd_resp_set_type(request, "application/json");
+    httpd_resp_send(request, response, strlen(response));
+    LOGI("WebServer", "Check connection");
 
     return ESP_OK;
 }
@@ -143,7 +173,7 @@ void Configuration::m_start_ap() {
 
     err = esp_netif_init();
     if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
-        LOGI("Configuration", "Error initializing TCP/IP stack: %s", esp_err_to_name(err));
+        LOGI("Access Point", "Error initializing TCP/IP stack: %s", esp_err_to_name(err));
         m_flag = CONFIGURATION_ERROR;
         return;
     }
@@ -151,14 +181,14 @@ void Configuration::m_start_ap() {
     wifi_init_config_t wifi_init_cfg = WIFI_INIT_CONFIG_DEFAULT();
     err = esp_wifi_init(&wifi_init_cfg);
     if (err != ESP_OK) {
-        LOGI("Configuration", "Error initializing WiFi driver: %s", esp_err_to_name(err));
+        LOGI("Access Point", "Error initializing WiFi driver: %s", esp_err_to_name(err));
         m_flag = CONFIGURATION_ERROR;
         return;
     }
 
     err = esp_event_loop_create_default();
     if (err != ESP_OK) {
-        LOGI("Configuration", "Error creating default event loop: %s", esp_err_to_name(err));
+        LOGI("Access Point", "Error creating default event loop: %s", esp_err_to_name(err));
         m_flag = CONFIGURATION_ERROR;
         return;
     }
@@ -170,7 +200,7 @@ void Configuration::m_start_ap() {
             NULL,
             NULL);
     if(err != ESP_OK) {
-        LOGI("Configuration", "Error registering WiFi event handler: %s", esp_err_to_name(err));
+        LOGI("Access Point", "Error registering WiFi event handler: %s", esp_err_to_name(err));
         m_flag = CONFIGURATION_ERROR;
         return;
     }
@@ -199,24 +229,53 @@ void Configuration::m_start_ap() {
 
     err = esp_wifi_set_config(WIFI_IF_AP, &wifi_config);
     if(err != ESP_OK) {
-        LOGI("Configuration", "Error setting WiFi AP configuration: %s", esp_err_to_name(err));
+        LOGI("Access Point", "Error setting WiFi AP configuration: %s", esp_err_to_name(err));
         m_flag = CONFIGURATION_ERROR;
         return;
     }
 
     err = esp_wifi_set_mode(WIFI_MODE_AP);
     if(err != ESP_OK) {
-        LOGI("Configuration", "Error setting WiFi mode to AP: %s", esp_err_to_name(err));
+        LOGI("Access Point", "Error setting WiFi mode to AP: %s", esp_err_to_name(err));
+        m_flag = CONFIGURATION_ERROR;
+        return;
+    }
+
+    esp_netif_t *ap_netif = esp_netif_create_default_wifi_ap();
+
+    err = esp_netif_dhcps_stop(ap_netif);
+    if (err != ESP_OK) {
+        ESP_LOGE("Access Point", "Failed to stop DHCP server: %s", esp_err_to_name(err));
+        return;
+    }
+
+    esp_netif_ip_info_t ip_info;
+    IP4_ADDR(&ip_info.ip, 192, 168, 4, 1);
+    IP4_ADDR(&ip_info.gw, 192, 168, 4, 1);
+    IP4_ADDR(&ip_info.netmask, 255, 255, 255, 0);
+
+    err = esp_netif_set_ip_info(ap_netif, &ip_info);
+    if (err != ESP_OK) {
+        LOGI("Access Point", "Error setting static IP for AP: %s", esp_err_to_name(err));
+        m_flag = CONFIGURATION_ERROR;
+        return;
+    }
+
+    err = esp_netif_dhcps_start(ap_netif);
+    if (err != ESP_OK) {
+        LOGI("Access Point", "Error starting DHCP server: %s", esp_err_to_name(err));
         m_flag = CONFIGURATION_ERROR;
         return;
     }
 
     err = esp_wifi_start();
     if(err != ESP_OK) {
-        LOGI("Configuration", "Error starting WiFi AP: %s", esp_err_to_name(err));
+        LOGI("Access Point", "Error starting WiFi AP: %s", esp_err_to_name(err));
         m_flag = CONFIGURATION_ERROR;
         return;
     }
+
+    LOGI("Access Point", "AP started successfully");
 }
 
 void Configuration::m_wifi_event_handler(
@@ -226,8 +285,8 @@ void Configuration::m_wifi_event_handler(
     void* event_data) {
 
     if (event_id == WIFI_EVENT_AP_STACONNECTED) {
-        LOGI("Configuration", "Station connected to AP");
+        LOGI("Access Point", "Station connected to AP");
     } else if (event_id == WIFI_EVENT_AP_STADISCONNECTED) {
-        LOGI("Configuration", "Station disconnected from AP");
+        LOGI("Access Point", "Station disconnected from AP");
     }
 }

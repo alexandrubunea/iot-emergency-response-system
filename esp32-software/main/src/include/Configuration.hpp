@@ -30,7 +30,7 @@
 
 #define     CONFIGURATION_AP_SSID               "ESP32"
 #define     CONFIGURATION_AP_PASSWORD           "admin1234"
-#define     CONFIGURATION_AP_CHANNEL            2
+#define     CONFIGURATION_AP_CHANNEL            6
 #define     CONFIGURATION_AP_MAX_CONNECTIONS    1
 #define     CONFIGURATION_SSID_HIDDEN           0
 
@@ -61,6 +61,7 @@ class Configuration {
         void m_load();
 
         esp_err_t static m_post_config_handler(httpd_req_t* request);
+        esp_err_t static m_get_check_connection_handler(httpd_req_t* request);
 
         void static m_wifi_event_handler(
             void* arg, 
