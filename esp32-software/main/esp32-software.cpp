@@ -26,6 +26,13 @@ extern "C" void app_main(void)
         return;
     }
 
+    if(configuration.getFlag() == CONFIGURATION_COMPLETED) {
+        LOGI("Main", "Configuration completed, ESP32 will start in STA mode");
+        return;
+    }
+
+    return;
+
     std::unique_ptr<MotionSensor> motionSensor = std::make_unique<MotionSensor>(GPIO_NUM_21);
     MotionEvent event(motionSensor);
 
