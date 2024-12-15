@@ -55,6 +55,9 @@ def generate_secure_sha512_hash():
 
 
 def upload_settings_to_communication_node(settings_dict):
+    settings_dict.pop('wifi_ssid')
+    settings_dict.pop('wifi_password')
+
     try:
         res = requests.post(
             f'{COMMUNICATION_NODE_ADDRESS}/api/register_device',
@@ -69,6 +72,9 @@ def upload_settings_to_communication_node(settings_dict):
 
 
 def embed_settings_to_device(settings_dict):
+    settings_dict.pop('business_id')
+    settings_dict.pop('device_location')
+
     try:
         res = requests.post(
             f'{ESP32_DEVICE_ADDRESS}/api/embed_settings',
@@ -108,26 +114,26 @@ if __name__ == '__main__':
     settings['device_location'] = input(
         'Enter the device location [Example: "Main Entrance"]: ').lower()
 
-    while not (settings['motion_detection'] == 'yes' or
-               settings['motion_detection'] == 'no'):
+    while not (settings['motion_detection'] == True or
+               settings['motion_detection'] == False):
         settings['motion_detection'] = bool(
                 input('Does the device have motion detection? [yes/no]: ')
                 .lower() == 'yes')
 
-    while not (settings['gas_detection'] == 'yes' or
-               settings['gas_detection'] == 'no'):
+    while not (settings['gas_detection'] == True or
+               settings['gas_detection'] == False):
         settings['gas_detection'] = bool(
                 input('Does the device have gas detection? [yes/no]: ')
                 .lower() == 'yes')
 
-    while not (settings['sound_detection'] == 'yes' or
-               settings['sound_detection'] == 'no'):
+    while not (settings['sound_detection'] == True or
+               settings['sound_detection'] == False):
         settings['sound_detection'] = bool(
                 input('Does the device have sound detection? [yes/no]: ')
                 .lower() == 'yes')
 
-    while not (settings['fire_detection'] == 'yes' or
-               settings['fire_detection'] == 'no'):
+    while not (settings['fire_detection'] == True or
+               settings['fire_detection'] == False):
         settings['fire_detection'] = bool(
                 input('Does the device have fire detection? [yes/no]: ')
                 .lower() == 'yes')
