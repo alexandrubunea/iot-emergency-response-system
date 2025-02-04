@@ -57,6 +57,23 @@ config_status_t config_init(nvs_handle_t* handle);
 config_status_t config_load(nvs_handle_t handle, config_t* config);
 
 /**
+ * @brief Saves the configuration settings to Non-Volatile Storage (NVS).
+ *
+ * This function stores the Wi-Fi credentials, API key, sensor settings, and a configuration flag 
+ * in the NVS storage. The changes are committed after writing all values.
+ *
+ * @param handle An open NVS handle for the "config" namespace.
+ * @param config Pointer to a config_t structure containing the settings to be saved.
+ * 
+ * @return `CONFIG_STATUS_OK` if the configuration is successfully saved \\
+ * @return `CONFIG_STATUS_ERROR` otherwise.
+ *
+ * @note The function commits the changes to NVS after setting all values.
+ * @warning If an error occurs, some settings might be partially saved in NVS.
+ */
+config_status_t config_save(nvs_handle_t handle, config_t* config);
+
+/**
  * @brief Checks whether the device has been configured.
  *
  * Reads the "configured" flag from NVS storage to determine if a valid configuration exists.

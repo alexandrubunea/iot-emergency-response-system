@@ -76,10 +76,10 @@ static wifi_status wifi_config_sta_mode(char* sta_ssid, char* sta_pass) {
         return WIFI_STATUS_ERROR;
     }
 
-    strncpy((char*) sta_config.sta.ssid, sta_ssid, strlen(sta_ssid) - 1);
-    sta_config.sta.ssid[strlen(sta_ssid) - 1] = '\0';
-    strncpy((char*) sta_config.sta.password, sta_pass, strlen(sta_pass) - 1);
-    sta_config.sta.password[strlen(sta_pass) - 1] = '\0';
+    strncpy((char*) sta_config.sta.ssid, sta_ssid, strlen(sta_ssid) + 1);
+    sta_config.sta.ssid[strlen(sta_ssid)] = '\0';
+    strncpy((char*) sta_config.sta.password, sta_pass, strlen(sta_pass) + 1);
+    sta_config.sta.password[strlen(sta_pass)] = '\0';
     
     esp_err_t err = esp_wifi_set_config(WIFI_IF_STA, &sta_config);
     if (err != ESP_OK) {
@@ -106,10 +106,10 @@ static wifi_status wifi_config_ap_mode(char* ap_ssid, char* ap_pass) {
         return WIFI_STATUS_ERROR;
     }
 
-    strncpy((char*) ap_config.ap.ssid, ap_ssid, strlen(ap_ssid) - 1);
-    ap_config.ap.ssid[strlen(ap_ssid) - 1] = '\0';
-    strncpy((char*) ap_config.ap.password, ap_pass, strlen(ap_pass) - 1);
-    ap_config.ap.password[strlen(ap_pass) - 1] = '\0';
+    strncpy((char*) ap_config.ap.ssid, ap_ssid, strlen(ap_ssid) + 1);
+    ap_config.ap.ssid[strlen(ap_ssid)] = '\0';
+    strncpy((char*) ap_config.ap.password, ap_pass, strlen(ap_pass) + 1);
+    ap_config.ap.password[strlen(ap_pass)] = '\0';
     
     ap_config.ap.ssid_len = strlen(ap_ssid);
     ap_config.ap.channel = 6;
@@ -172,6 +172,11 @@ wifi_status wifi_init(wifi_mode_t mode, char* sta_ssid, char* sta_pass, char* ap
         ESP_LOGE(TAG, "Error starting WiFi: %s", esp_err_to_name(err));
         return WIFI_STATUS_ERROR;
     }
+
+    if (mode == WIFI_MODE_AP)
+        ESP_LOGI(TAG, "Wi-Fi started in AP mode (SSID: %s | Password: %s)", ap_ssid, ap_pass);
+    else if (mode == WIFI_MODE_STA)
+        ESP_LOGI(TAG, "Wi-Fi started in STA mode (SSID: %s | Password: %s)", sta_ssid, sta_pass);
     
     return WIFI_STATUS_OK;
 }

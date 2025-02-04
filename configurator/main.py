@@ -44,7 +44,7 @@ def check_device_connection():
     return res.status_code == 200
 
 
-def check_wifi_credentials(wifi_ssid, wifi_password):
+def check_wifi_credentials(ssid, password):
     return False
 
 
@@ -55,8 +55,8 @@ def generate_secure_sha512_hash():
 
 
 def upload_settings_to_communication_node(settings_dict):
-    settings_dict.pop('wifi_ssid')
-    settings_dict.pop('wifi_password')
+    settings_dict.pop('ssid')
+    settings_dict.pop('password')
 
     try:
         res = requests.post(
@@ -102,9 +102,9 @@ if __name__ == '__main__':
         exit(1)
 
     settings = dict.fromkeys(['business_id', 'device_location',
-                              'motion_detection', 'gas_detection',
-                              'sound_detection', 'fire_detection',
-                              'hash_id'])
+                              'motion', 'gas',
+                              'sound', 'fire',
+                              'api_key'])
 
     settings['business_id'] = int(input('Please enter the business ID: '))
     if not check_if_business_exists(settings['business_id']):
@@ -114,43 +114,43 @@ if __name__ == '__main__':
     settings['device_location'] = input(
         'Enter the device location [Example: "Main Entrance"]: ').lower()
 
-    while not (settings['motion_detection'] == True or
-               settings['motion_detection'] == False):
-        settings['motion_detection'] = bool(
+    while not (settings['motion'] == True or
+               settings['motion'] == False):
+        settings['motion'] = bool(
                 input('Does the device have motion detection? [yes/no]: ')
                 .lower() == 'yes')
 
-    while not (settings['gas_detection'] == True or
-               settings['gas_detection'] == False):
-        settings['gas_detection'] = bool(
+    while not (settings['gas'] == True or
+               settings['gas'] == False):
+        settings['gas'] = bool(
                 input('Does the device have gas detection? [yes/no]: ')
                 .lower() == 'yes')
 
-    while not (settings['sound_detection'] == True or
-               settings['sound_detection'] == False):
-        settings['sound_detection'] = bool(
+    while not (settings['sound'] == True or
+               settings['sound'] == False):
+        settings['sound'] = bool(
                 input('Does the device have sound detection? [yes/no]: ')
                 .lower() == 'yes')
 
-    while not (settings['fire_detection'] == True or
-               settings['fire_detection'] == False):
-        settings['fire_detection'] = bool(
+    while not (settings['fire'] == True or
+               settings['fire'] == False):
+        settings['fire'] = bool(
                 input('Does the device have fire detection? [yes/no]: ')
                 .lower() == 'yes')
 
     print('Enter the WiFi credentials so that the device can connect to'
           ' the network and communicate with the communication node')
     while True:
-        settings['wifi_ssid'] = input('Please enter the WiFi SSID: ')
-        settings['wifi_password'] = input('Please enter the WiFi password: ')
+        settings['ssid'] = input('Please enter the WiFi SSID: ')
+        settings['password'] = input('Please enter the WiFi password: ')
 
-        if check_wifi_credentials(settings['wifi_ssid'],
-                                  settings['wifi_password']):
+        if check_wifi_credentials(settings['ssid'],
+                                  settings['password']):
             break
         else:
             print('Invalid WiFi credentials, please try again')
 
-    settings['hash_id'] = generate_secure_sha512_hash()
+    settings['api_key'] = generate_secure_sha512_hash()
 
     if not upload_settings_to_communication_node(settings):
         print('Failed to upload settings to the communication node')

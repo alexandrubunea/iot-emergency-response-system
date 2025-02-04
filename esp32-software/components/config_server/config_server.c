@@ -17,6 +17,8 @@
 static const char *TAG = "config_server";
 
 static bool esp32_config_received = false;
+static httpd_handle_t handle = NULL;
+
 
 static esp_err_t check_handler(httpd_req_t* req) {
 
@@ -30,7 +32,7 @@ static esp_err_t check_handler(httpd_req_t* req) {
 }
 
 static esp_err_t config_handler(httpd_req_t* req) {
-    config_t* device_configuration = (config_t*) req->user_ctx;
+    config_t* config = (config_t*) req->user_ctx;
 
     char content[512];
     size_t content_length = req->content_len;
@@ -73,23 +75,23 @@ static esp_err_t config_handler(httpd_req_t* req) {
     httpd_resp_set_type(req, "application/json");
     httpd_resp_send(req, res, strlen(res));
 
-    device_configuration->api_key = api_key->valuestring;
-    device_configuration->ssid = ssid->valuestring;
-    device_configuration->password = password->valuestring;
-    device_configuration->motion = motion->valueint;
-    device_configuration->sound = sound->valueint;
-    device_configuration->gas = gas->valueint;
-    device_configuration->fire = fire->valueint;
+    config->api_key = api_key->valuestring;
+    config->ssid = ssid->valuestring;
+    config->password = password->valuestring;
+    config->motion = motion->valueint;
+    config->sound = sound->valueint;
+    config->gas = gas->valueint;
+    config->fire = fire->valueint;
 
     esp32_config_received = true;
+    
     return ESP_OK;
 }
 
-httpd_handle_t config_server_init(config_t* device_configuration) {
-    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    httpd_handle_t handle = NULL;
+httpd_handle_t config_server_init(config_t* config) {
+    httpd_config_t config_httpd = HTTPD_DEFAULT_CONFIG();
 
-    if (httpd_start(&handle, &config) != ESP_OK) {
+    if (httpd_start(&handle, &config_httpd) != ESP_OK) {
         ESP_LOGE(TAG, "Error starting HTTP server");
         return NULL;
     }
@@ -98,7 +100,7 @@ httpd_handle_t config_server_init(config_t* device_configuration) {
         .uri = "api/config",
         .method = HTTP_POST,
         .handler = config_handler,
-        .user_ctx = device_configuration
+        .user_ctx = config
     };
 
     httpd_uri_t check_uri = {
