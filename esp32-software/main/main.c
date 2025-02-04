@@ -79,7 +79,7 @@ esp_err_t boot(config_t* device_configuration) {
     }
 
     if (wifi_mode == WIFI_MODE_STA) {
-        ESP_LOGE(TAG, "Boot sequence complete.");
+        ESP_LOGI(TAG, "Boot sequence complete.");
         nvs_close(nvs_handle);
         print_config(device_configuration);
 

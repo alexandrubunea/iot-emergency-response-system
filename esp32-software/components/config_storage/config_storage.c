@@ -124,7 +124,7 @@ config_status_t config_save(nvs_handle_t handle, config_t* config) {
         return CONFIG_STATUS_ERROR;
     }
 
-    err = nvs_set_str(handle, "pass", config->password);
+    err = nvs_set_str(handle, "password", config->password);
     if(err != ESP_OK) {
         ESP_LOGE(TAG, "Error setting Wi-Fi password: %s", esp_err_to_name(err));
         return CONFIG_STATUS_ERROR;

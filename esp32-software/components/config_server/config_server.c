@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -67,21 +68,26 @@ static esp_err_t config_handler(httpd_req_t* req) {
         return ESP_FAIL;
     }
 
-    cJSON_Delete(root);
-
     const char* res = "{\"status\": \"sucesss\"}";
 
     httpd_resp_set_status(req, "200 OK");
     httpd_resp_set_type(req, "application/json");
     httpd_resp_send(req, res, strlen(res));
 
-    config->api_key = api_key->valuestring;
-    config->ssid = ssid->valuestring;
-    config->password = password->valuestring;
+    if (config->api_key != NULL) free(config->api_key);
+    if (config->ssid != NULL) free(config->ssid);
+    if (config->password != NULL) free(config->password);
+
+    config->api_key = strdup(api_key->valuestring);
+    config->ssid = strdup(ssid->valuestring);
+    config->password = strdup(password->valuestring);
+
     config->motion = motion->valueint;
     config->sound = sound->valueint;
     config->gas = gas->valueint;
     config->fire = fire->valueint;
+
+    cJSON_Delete(root);
 
     esp32_config_received = true;
     
@@ -97,14 +103,14 @@ httpd_handle_t config_server_init(config_t* config) {
     }
 
     httpd_uri_t config_uri = {
-        .uri = "api/config",
+        .uri = "/api/config",
         .method = HTTP_POST,
         .handler = config_handler,
         .user_ctx = config
     };
 
     httpd_uri_t check_uri = {
-        .uri = "api/check",
+        .uri = "/api/check",
         .method = HTTP_GET,
         .handler = check_handler,
         .user_ctx = NULL
