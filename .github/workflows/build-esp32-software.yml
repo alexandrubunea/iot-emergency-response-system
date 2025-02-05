@@ -1,0 +1,43 @@
+name: ESP32 Software Build
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  esp32-software-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.X'
+
+    - name: Cache ESP-IDF
+      uses: actions/cache@v4
+      id: cache-esp
+      with:
+        path: |
+          ~/.espressif
+          esp-idf
+        key: esp-cache-${{ hashFiles('**/CMakeLists.txt') }}
+
+    - name: Install ESP-IDF
+      working-directory: ./
+      run: |
+        if [ ! -d "esp-idf" ]; then
+          git clone --branch v5.1.1 --depth 1 --recursive https://github.com/espressif/esp-idf.git
+        fi
+        ./esp-idf/install.sh
+        source ./esp-idf/export.sh
+
+    - name: Build Project
+      working-directory: ./
+      run: |
+        source ./esp-idf/export.sh
+        cd esp32-software
+        idf.py set-target esp32
+        idf.py build

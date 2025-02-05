@@ -1,0 +1,80 @@
+name: Lint
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  lint-code:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.X'
+        cache: 'pip'
+
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      id: pip-cache
+      with:
+        path: ~/.cache/pip
+        key: pip-${{ hashFiles('**/requirements.txt') }}
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pylint black==25.1.0
+        pip install -r communication-node/requirements.txt
+        pip install -r configurator/requirements.txt
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update && sudo apt-get install -y cppcheck clang-format
+
+    - name: Lint Python with flake8
+      run: |
+        flake8 communication-node configurator \
+          --count \
+          --max-line-length=100 \
+          --statistics \
+          --exit-zero
+
+    - name: Check Python formatting with black
+      run: |
+        black --check --diff communication-node configurator
+
+    - name: Lint Python with pylint
+      run: |
+        pylint --exit-zero --output-format=colorized communication-node configurator
+
+    - name: Check C/C++ code formatting
+      run: |
+        find esp32-software -name '*.c' -o -name '*.h' -exec clang-format \
+          --style=file:./.clang-format \
+          --Werror \
+          --dry-run {} +
+
+    - name: Static analysis C/C++ code
+      run: |
+        cppcheck \
+          --enable=style,warning,performance,portability \
+          --suppress=missingIncludeSystem \
+          --suppress=unusedFunction \
+          --suppress=unusedStructMember \
+          --inline-suppr \
+          --error-exitcode=1 \
+          -Iesp32-software/components/config_server/include \
+          -Iesp32-software/components/config_storage/include \
+          -Iesp32-software/components/wifi_manager/include \
+          --check-level=exhaustive \
+          --language=c \
+          esp32-software/
+
+    - name: Conventional Commits check
+      uses: wagoid/commitlint-github-action@v6
