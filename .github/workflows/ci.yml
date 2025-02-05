@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.x'
 
@@ -24,6 +24,7 @@ jobs:
         pip install flake8 pylint black pytest
         pip install -r communication-node/requirements.txt
         pip install -r configurator/requirements.txt
+        sudo apt-get update && sudo apt-get install -y cppcheck clang-format
 
     - name: Lint with flake8
       run: |
@@ -40,6 +41,17 @@ jobs:
     - name: Run Python tests
       run: |
         pytest communication-node configurator
+
+    - name: Check C code style
+      run: |
+        find esp32-software -name '*.c' -o -name '*.h' | xargs clang-format --dry-run --Werror
+
+    - name: Static analysis C code
+      run: |
+        cppcheck --enable=all --error-exitcode=1 esp32-software/
+
+    - name: Conventional Commits check
+      uses: wagoid/commitlint-github-action@v6
 
     - name: ESP32 build check
       working-directory: esp32-software

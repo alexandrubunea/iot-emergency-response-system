@@ -22,3 +22,17 @@ repos:
     rev: v3.3.4
     hooks:
     -   id: pylint
+
+-   repo: https://github.com/pocc/pre-commit-hooks
+    rev: v1.3.5
+    hooks:
+    -   id: clang-format
+        args: [--style=file]
+    -   id: cppcheck
+
+-   repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.0.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: []
