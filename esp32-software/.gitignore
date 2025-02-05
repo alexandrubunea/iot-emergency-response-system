@@ -1,6 +1,4 @@
-sdkconfig
-sdkconfig.*
-cmake-build-debug/
 build/
-.vscode
-.idea
+sdkconfig
+sdkconfig.old
+.vscode/
