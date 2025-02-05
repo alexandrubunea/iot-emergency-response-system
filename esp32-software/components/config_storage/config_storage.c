@@ -3,12 +3,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-
 #include "nvs_flash.h"
 #include "nvs.h"
-
 #include "esp_log.h"
-
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -107,55 +104,55 @@ config_status_t config_save(nvs_handle_t handle, config_t* config) {
     esp_err_t err;
 
     err = nvs_set_u8(handle, "configured", 1);
-    if(err != ESP_OK) {
+    if (err != ESP_OK) {
         ESP_LOGE(TAG, "Error setting configuration flag: %s", esp_err_to_name(err));
         return CONFIG_STATUS_ERROR;
     }
 
     err = nvs_set_str(handle, "api_key", config->api_key);
-    if(err != ESP_OK) {
-        ESP_LOGE(TAG, "Error setting hash ID: %s", esp_err_to_name(err));
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Error setting api_key: %s", esp_err_to_name(err));
         return CONFIG_STATUS_ERROR;
     }
 
     err = nvs_set_str(handle, "ssid", config->ssid);
-    if(err != ESP_OK) {
+    if (err != ESP_OK) {
         ESP_LOGE(TAG, "Error setting Wi-Fi SSID: %s", esp_err_to_name(err));
         return CONFIG_STATUS_ERROR;
     }
 
     err = nvs_set_str(handle, "password", config->password);
-    if(err != ESP_OK) {
+    if (err != ESP_OK) {
         ESP_LOGE(TAG, "Error setting Wi-Fi password: %s", esp_err_to_name(err));
         return CONFIG_STATUS_ERROR;
     }
 
     err = nvs_set_u8(handle, "motion", config->motion);
-    if(err != ESP_OK) {
+    if (err != ESP_OK) {
         ESP_LOGE(TAG, "Error setting motion detection: %s", esp_err_to_name(err));
         return CONFIG_STATUS_ERROR;
     }
 
     err = nvs_set_u8(handle, "sound", config->sound);
-    if(err != ESP_OK) {
+    if (err != ESP_OK) {
         ESP_LOGE(TAG, "Error setting sound detection: %s", esp_err_to_name(err));
         return CONFIG_STATUS_ERROR;
     }
 
     err = nvs_set_u8(handle, "gas", config->gas);
-    if(err != ESP_OK) {
+    if (err != ESP_OK) {
         ESP_LOGE(TAG, "Error setting gas detection: %s", esp_err_to_name(err));
         return CONFIG_STATUS_ERROR;
     }
 
     err = nvs_set_u8(handle, "fire", config->fire);
-    if(err != ESP_OK) {
+    if (err != ESP_OK) {
         ESP_LOGE(TAG, "Error setting fire detection: %s", esp_err_to_name(err));
         return CONFIG_STATUS_ERROR;
     }
 
     err = nvs_commit(handle);
-    if(err != ESP_OK) {
+    if (err != ESP_OK) {
         ESP_LOGE(TAG, "Error committing configuration: %s", esp_err_to_name(err));
         return CONFIG_STATUS_ERROR;
     }

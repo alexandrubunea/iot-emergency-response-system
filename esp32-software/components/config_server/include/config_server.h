@@ -3,9 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-
 #include "esp_http_server.h"
-
 #include "config_storage.h"
 
 typedef enum {

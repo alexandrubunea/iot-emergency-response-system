@@ -4,15 +4,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-
 #include "esp_log.h"
-
 #include "esp_http_server.h"
 #include "cJSON.h"
-
 #include "config_storage.h"
 
 static const char *TAG = "config_server";
@@ -39,7 +35,7 @@ static esp_err_t config_handler(httpd_req_t* req) {
     size_t content_length = req->content_len;
     int ret = httpd_req_recv(req, content, content_length);
 
-    if(ret <= 0) {
+    if (ret <= 0) {
         if(ret == HTTPD_SOCK_ERR_TIMEOUT) {
             httpd_resp_send_408(req);
         }
@@ -48,7 +44,7 @@ static esp_err_t config_handler(httpd_req_t* req) {
     }
 
     cJSON* root = cJSON_Parse(content);
-    if(root == NULL) {
+    if (root == NULL) {
         ESP_LOGI(TAG, "Error parsing JSON");
         httpd_resp_send_custom_err(req, "400", "Invalid JSON");
         return ESP_FAIL;
@@ -62,7 +58,7 @@ static esp_err_t config_handler(httpd_req_t* req) {
     cJSON* gas = cJSON_GetObjectItem(root, "gas");
     cJSON* fire = cJSON_GetObjectItem(root, "fire");
 
-    if(api_key == NULL || ssid == NULL || password == NULL || motion == NULL || sound == NULL || gas == NULL || fire == NULL) {
+    if (api_key == NULL || ssid == NULL || password == NULL || motion == NULL || sound == NULL || gas == NULL || fire == NULL) {
         httpd_resp_send_custom_err(req, "400", "Missing required fields");
         cJSON_Delete(root);
         return ESP_FAIL;
@@ -131,7 +127,7 @@ httpd_handle_t config_server_init(config_t* config) {
 }
 
 void wait_for_configuration(u_int8_t seconds_between_checks) {
-    while(!esp32_config_received) {
+    while (!esp32_config_received) {
         ESP_LOGI(TAG, "Configuration wasn't received yet. Checking again in %d seconds.", seconds_between_checks);
         vTaskDelay((1000 * seconds_between_checks) / portTICK_PERIOD_MS);
     }
