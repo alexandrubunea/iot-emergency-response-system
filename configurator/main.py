@@ -121,8 +121,8 @@ def upload_settings_to_communication_node(settings_dict):
     Exits:
         If the communication node is unavailable, the script exits with code 1.
     """
-    settings_dict.pop("ssid")
-    settings_dict.pop("password")
+    settings_dict.pop('ssid')
+    settings_dict.pop('password')
 
     try:
         res = requests.post(
