@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pylint black pytest
+        pip install -r communication-node/requirements.txt
+        pip install -r configurator/requirements.txt
+
+    - name: Lint with flake8
+      run: |
+        flake8 communication-node configurator --count --max-line-length=100 --statistics
+
+    - name: Check formatting with black
+      run: |
+        black --check communication-node configurator
+
+    - name: Lint with pylint
+      run: |
+        pylint communication-node configurator
+
+    - name: Run Python tests
+      run: |
+        pytest communication-node configurator
+
+    - name: ESP32 build check
+      working-directory: esp32-software
+      run: |
+        git clone --recursive https://github.com/espressif/esp-idf.git
+        cd esp-idf
+        ./install.sh
+        . ./export.sh
+        cd ..
+        idf.py build
