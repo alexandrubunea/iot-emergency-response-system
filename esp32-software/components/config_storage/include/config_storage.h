@@ -85,6 +85,9 @@ config_status_t config_save(nvs_handle_t handle, config_t* config);
  *
  * @param handle An open NVS handle for the "config" namespace.
  *
+ * @return `true` if the device has been configured \\
+ * @return `false` otherwise.
+ */
 bool is_configured(nvs_handle_t handle);
 
 /**
