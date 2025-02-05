@@ -1,5 +1,5 @@
 """
-    Script used to configure the ESP32
+Script used to configure the ESP32
 """
 
 import argparse
