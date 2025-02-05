@@ -3,9 +3,6 @@
 
 #include "esp_wifi.h"
 
-#define WIFI_AP_SSID "ESP32"
-#define WIFI_AP_PASS "admin1234"
-
 typedef enum {
     WIFI_STATUS_OK = 0,
     WIFI_STATUS_ERROR = -1

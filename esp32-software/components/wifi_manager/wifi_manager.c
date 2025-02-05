@@ -108,12 +108,12 @@ static wifi_status wifi_config_ap_mode(char* ap_ssid, char* ap_pass) {
         return WIFI_STATUS_ERROR;
     }
 
-    strncpy((char*) ap_config.ap.ssid, ap_ssid, strlen(ap_ssid) - 1);
-    ap_config.ap.ssid[strlen(ap_ssid) - 1] = '\0';
-    strncpy((char*) ap_config.ap.password, ap_pass, strlen(ap_pass) - 1);
-    ap_config.ap.password[strlen(ap_pass) - 1] = '\0';
+    strncpy((char*) ap_config.ap.ssid, ap_ssid, sizeof(ap_config.ap.ssid) - 1);
+    ap_config.ap.ssid[sizeof(ap_config.ap.ssid) - 1] = '\0';
+    strncpy((char*) ap_config.ap.password, ap_pass, sizeof(ap_config.ap.password) - 1);
+    ap_config.ap.password[sizeof(ap_config.ap.password) - 1] = '\0';
     
-    ap_config.ap.ssid_len = strlen((char*) ap_config.ap.ssid);
+    ap_config.ap.ssid_len = strlen(ap_ssid);
     ap_config.ap.channel = 6;
     ap_config.ap.authmode = WIFI_AUTH_WPA2_PSK;
     ap_config.ap.max_connection = 4;

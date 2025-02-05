@@ -17,6 +17,9 @@
 #define         WAIT_TIME_BEFORE_REBOOT         5
 #define         GENERIC_DELAY_TIME              5
 
+#define         WIFI_AP_SSID                    "ESP32"
+#define         WIFI_AP_PASS                    "admin1234"
+
 /* Function prototypes */
 config_t* allocate_configuration();
 bool read_flash_memory(nvs_handle_t handle);
