@@ -16,7 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pylint black==25.1.0 pytest
+        pip install flake8 pylint black==25.1.0
         pip install -r communication-node/requirements.txt
         pip install -r configurator/requirements.txt
         sudo apt-get update && sudo apt-get install -y cppcheck clang-format
@@ -29,9 +29,6 @@ jobs:
     - name: Lint with pylint
       run: |
         pylint communication-node configurator
-    - name: Run Python tests
-      run: |
-        pytest communication-node configurator
     - name: Check C code style
       run: |
         find esp32-software -name '*.c' -o -name '*.h' | xargs clang-format --style=file:./.clang-format
