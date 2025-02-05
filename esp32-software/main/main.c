@@ -1,122 +1,158 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "config_server.h"
+#include "config_storage.h"
+#include "esp_http_server.h"
+#include "esp_log.h"
+#include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-
-#include "nvs_flash.h"
 #include "nvs.h"
-
-#include "esp_wifi.h"
-
-#include "esp_http_server.h"
-
-#include "esp_log.h"
-
-#include "config_storage.h"
+#include "nvs_flash.h"
 #include "wifi_manager.h"
-#include "config_server.h"
 
+/* ESP32 Configuration */
+#define CONFIG_WAIT_TIME_SECONDS 5
+#define WAIT_TIME_BEFORE_REBOOT 5
+#define GENERIC_DELAY_TIME 5
 
-esp_err_t boot(config_t* device_configuration);
+#define WIFI_AP_SSID "ESP32"
+#define WIFI_AP_PASS "admin1234"
+
+/* Function prototypes */
+config_t* allocate_configuration();
+bool read_flash_memory(nvs_handle_t handle);
+esp_err_t boot_sequence(config_t** device_cfg);
 void print_config(config_t* config);
 
+/* Main app */
 void app_main(void) {
-    const char* TAG = "app_main";
+	config_t* device_cfg;
 
-    config_t* device_configuration = malloc(sizeof(config_t));
-    if (device_configuration == NULL) {
-        ESP_LOGE(TAG, "Failed to allocate memory for device_configuration.");
-        return;
-    }
+	if (boot_sequence(&device_cfg) != ESP_OK) return;
 
-    if (boot(device_configuration) != ESP_OK)
-        return;
-
-    while(true) {
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
+	while (true) {
+		vTaskDelay(1000 / portTICK_PERIOD_MS);
+	}
 }
 
-esp_err_t boot(config_t* device_configuration) {
-    const char* TAG = "software_boot";
-    wifi_mode_t wifi_mode;
+esp_err_t boot_sequence(config_t** device_cfg) {
+	const char* TAG = "boot";
 
-    /* Configuration Storage */
-    ESP_LOGI(TAG, "Confiugration Storage Section");
-    
-    device_configuration->api_key = NULL;
-    device_configuration->ssid = NULL;
-    device_configuration->password = NULL;
+	/* Allocate necessary resources to boot */
+	*device_cfg = allocate_configuration();
+	nvs_handle_t nvs_handle;
+	httpd_handle_t httpd_handle = NULL;
+	wifi_mode_t wifi_mode;
+	esp_err_t boot_status = ESP_OK;
+	bool device_configured;
+	bool freshly_configured = false;
 
-    nvs_handle_t nvs_handle;
+	/* Check if device_cfg was initialized properly */
+	if (*device_cfg == NULL) goto error;
 
-    if (config_init(&nvs_handle) == CONFIG_STATUS_ERROR) {
-        ESP_LOGE(TAG, "Confiugration Storage failed. Boot sequence exit.");
-        return ESP_FAIL;
-    }
+	/* Init flash memory */
+	if (config_init(&nvs_handle) == CONFIG_STATUS_ERROR) goto error;
 
-    if (is_configured(nvs_handle)) {
-        ESP_LOGI(TAG, "Device configured. Loading data from NVS.");
+	/* Check if config exists on flash memory */
+	device_configured = is_configured(nvs_handle);
 
-        if (config_load(nvs_handle, device_configuration) == CONFIG_STATUS_ERROR) {
-            ESP_LOGE(TAG, "Failed to load configuration from NVS. Boot sequence exit.");
-            return ESP_FAIL;
-        }
+	/* Loads the configuration if the device is configured */
+	if (device_configured && config_load(nvs_handle, *device_cfg) == CONFIG_STATUS_ERROR)
+		goto error;
 
-        wifi_mode = WIFI_MODE_STA;
-    } else {
-        ESP_LOGI(TAG, "Device not configured. Starting in AP mode.");
+	/* Decide in which mode to start the wifi_manager */
+	wifi_mode = (device_configured) ? WIFI_MODE_STA : WIFI_MODE_AP;
 
-        wifi_mode = WIFI_MODE_AP;
-    }
+	/* Init wifi_manager */
+	if (wifi_init(wifi_mode, (*device_cfg)->ssid, (*device_cfg)->password, WIFI_AP_SSID,
+				  WIFI_AP_PASS) == WIFI_STATUS_ERROR)
+		goto error;
 
-    /* Wi-Fi Manager */
-    if (wifi_init(wifi_mode, device_configuration->ssid, device_configuration->ssid, WIFI_AP_SSID, WIFI_AP_PASS) == WIFI_STATUS_ERROR) {
-        ESP_LOGE(TAG, "Failed to initialize wifi_manager. Boot sequence exit.");
+	/* If the wifi_mode is set to STA, then is no need for the config_server */
+	if (wifi_mode == WIFI_MODE_STA) goto success;
 
-        return ESP_FAIL;
-    }
+	/* Init config_server */
+	httpd_handle = config_server_init(*device_cfg);
+	if (httpd_handle == NULL) goto error;
 
-    if (wifi_mode == WIFI_MODE_STA) {
-        ESP_LOGI(TAG, "Boot sequence complete.");
-        nvs_close(nvs_handle);
-        print_config(device_configuration);
+	/* Wait for the ESP32 to be configured */
+	wait_for_configuration(CONFIG_WAIT_TIME_SECONDS);
 
-        return ESP_OK;
-    }
+	/* Save the received configuration */
+	config_save(nvs_handle, *device_cfg);
 
-    /* Configuration Server */
-    httpd_handle_t httpd_handle = config_server_init(device_configuration);
-    if (httpd_handle == NULL) {
-        ESP_LOGE(TAG, "Failed to initialize config_server. Boot sequence exit.");
+	/* Mark the fact that this device was freshly configured */
+	freshly_configured = true;
 
-        return ESP_FAIL;
-    }
+	/* Boot sequence complete */
+success:
+	vTaskDelay((1000 * GENERIC_DELAY_TIME) / portTICK_PERIOD_MS);  // Delay because the Wi-Fi client
+																   // needs a little bit to connect
+	print_config(*device_cfg);
+	ESP_LOGI(TAG, "Boot sequence complete.");
+	goto free_resources;
 
-    wait_for_configuration(5);
+error:
+	ESP_LOGE(TAG, "Error occured during boot sequence. Device unable to boot.");
+	boot_status = ESP_FAIL;
+	freshly_configured = false;
+	if (*device_cfg != NULL) config_close(device_cfg);
 
-    /* Save Configuration & Restart ESP32 */
-    config_save(nvs_handle, device_configuration);
-    print_config(device_configuration);
+free_resources:
+	if (nvs_handle) nvs_close(nvs_handle);
+	if (httpd_handle) httpd_stop(httpd_handle);
 
-    httpd_stop(httpd_handle);
-    nvs_close(nvs_handle);
-    config_close(device_configuration);
+	/* Restart the device if it was freshly configured. */
+	if (freshly_configured) {
+		if (*device_cfg == NULL)  // This shouldn't happen, but it's better to be safe...
+			goto error;
 
-    esp_restart();
+		config_close(device_cfg);
 
-    return ESP_OK;
+		ESP_LOGI(TAG, "This device was freshly configured and will reboot in %d seconds...",
+				 WAIT_TIME_BEFORE_REBOOT);
+		vTaskDelay((1000 * WAIT_TIME_BEFORE_REBOOT) / portTICK_PERIOD_MS);
+
+		esp_restart();
+	}
+
+	return boot_status;
+}
+
+config_t* allocate_configuration() {
+	config_t* config = malloc(sizeof(config_t));
+	if (config == NULL) {
+		ESP_LOGE("config", "Failed to allocate memory for ESP32 configurtion.");
+		return NULL;
+	}
+
+	config->api_key = NULL;
+	config->ssid = NULL;
+	config->password = NULL;
+	config->motion = false;
+	config->sound = false;
+	config->gas = false;
+	config->fire = false;
+
+	return config;
 }
 
 void print_config(config_t* config) {
-    const char* TAG = "config";
+	const char* TAG = "config";
 
-    ESP_LOGI(TAG, "API key: %s", config->api_key);
-    ESP_LOGI(TAG, "Wi-Fi SSID: %s", config->ssid);
-    ESP_LOGI(TAG, "Wi-Fi password: %s", config->password);
-    ESP_LOGI(TAG, "Motion sensor: %s", (config->motion) ? "active" : "not active");
-    ESP_LOGI(TAG, "Sound sensor: %s", (config->sound) ? "active" : "not active");
-    ESP_LOGI(TAG, "Gas sensor: %s", (config->gas) ? "active" : "not active");
-    ESP_LOGI(TAG, "Fire sensor: %s", (config->fire) ? "active" : "not active");
+	if (config == NULL) {
+		ESP_LOGE(TAG, "Configuration is null. Data can't be displayed.");
+		return;
+	}
+
+	ESP_LOGI(TAG, "API key: %s", config->api_key);
+	ESP_LOGI(TAG, "Wi-Fi SSID: %s", config->ssid);
+	ESP_LOGI(TAG, "Wi-Fi password: %s", config->password);
+	ESP_LOGI(TAG, "Motion sensor: %s", (config->motion) ? "active" : "not active");
+	ESP_LOGI(TAG, "Sound sensor: %s", (config->sound) ? "active" : "not active");
+	ESP_LOGI(TAG, "Gas sensor: %s", (config->gas) ? "active" : "not active");
+	ESP_LOGI(TAG, "Fire sensor: %s", (config->fire) ? "active" : "not active");
 }
