@@ -1,9 +1,9 @@
 name: ESP32 Software Build
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, dev ]
+    branches: [ main ]
 
 jobs:
   esp32-software-build:
