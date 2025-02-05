@@ -15,6 +15,7 @@
 /* ESP32 Configuration */
 #define         CONFIG_WAIT_TIME_SECONDS        5
 #define         WAIT_TIME_BEFORE_REBOOT         5
+#define         GENERIC_DELAY_TIME              5
 
 /* Function prototypes */
 config_t* allocate_configuration();
@@ -88,6 +89,7 @@ esp_err_t boot_sequence(config_t** device_cfg) {
 
     /* Boot sequence complete */
 success:
+    vTaskDelay((1000 * GENERIC_DELAY_TIME) / portTICK_PERIOD_MS); // Delay because the Wi-Fi client needs a little bit to connect
     print_config(*device_cfg);
     ESP_LOGI(TAG, "Boot sequence complete.");
     goto free_resources;
