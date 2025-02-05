@@ -4,38 +4,38 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "nvs.h"
 #include "nvs_flash.h"
+#include "nvs.h"
 
-typedef enum { CONFIG_STATUS_OK = 0, CONFIG_STATUS_ERROR = -1 } config_status_t;
+typedef enum {
+    CONFIG_STATUS_OK = 0,
+    CONFIG_STATUS_ERROR = -1
+} config_status_t;
 
 typedef struct Config {
-	char* api_key;
-	char* ssid;
-	char* password;
+    char* api_key;
+    char* ssid;
+    char* password;
 
-	bool motion;
-	bool sound;
-	bool gas;
-	bool fire;
+    bool motion;
+    bool sound;
+    bool gas;
+    bool fire;
 } config_t;
 
 /**
- * @brief Initializes the Non-Volatile Storage (NVS) and opens the "config"
- * namespace.
+ * @brief Initializes the Non-Volatile Storage (NVS) and opens the "config" namespace.
  *
- * This function initializes the NVS storage and attempts to open the "config"
- * namespace. If the NVS partition is full or outdated, it erases and
- * reinitializes the storage up to 5 times.
+ * This function initializes the NVS storage and attempts to open the "config" namespace.
+ * If the NVS partition is full or outdated, it erases and reinitializes the storage up to 5 times.
  *
- * @param handle Pointer to an NVS handle where the opened namespace will be
- * stored.
- *
+ * @param handle Pointer to an NVS handle where the opened namespace will be stored.
+ * 
  * @return `CONFIG_STATUS_OK` if initialization is successful \\
  * @return `CONFIG_STATUS_ERROR` otherwise.
  *
- * @note If the function encounters repeated errors, it will erase and retry
- * initialization with a maximum of 5 attempts.
+ * @note If the function encounters repeated errors, it will erase and retry initialization 
+ *       with a maximum of 5 attempts.
  *
  * @warning Erasing the NVS storage will delete all stored configuration data.
  */
@@ -44,13 +44,11 @@ config_status_t config_init(nvs_handle_t* handle);
 /**
  * @brief Loads the stored configuration from NVS.
  *
- * Reads stored Wi-Fi credentials, API key, and sensor configurations from the
- * NVS storage.
+ * Reads stored Wi-Fi credentials, API key, and sensor configurations from the NVS storage.
  *
  * @param handle An open NVS handle for the "config" namespace.
- * @param config Pointer to a config_t structure where the loaded configuration
- * will be stored.
- *
+ * @param config Pointer to a config_t structure where the loaded configuration will be stored.
+ * 
  * @return `CONFIG_STATUS_OK` if all values are successfully loaded \\
  * @return `CONFIG_STATUS_ERROR` otherwise.
  *
@@ -61,14 +59,12 @@ config_status_t config_load(nvs_handle_t handle, config_t* config);
 /**
  * @brief Saves the configuration settings to Non-Volatile Storage (NVS).
  *
- * This function stores the Wi-Fi credentials, API key, sensor settings, and a
- * configuration flag in the NVS storage. The changes are committed after
- * writing all values.
+ * This function stores the Wi-Fi credentials, API key, sensor settings, and a configuration flag 
+ * in the NVS storage. The changes are committed after writing all values.
  *
  * @param handle An open NVS handle for the "config" namespace.
- * @param config Pointer to a config_t structure containing the settings to be
- * saved.
- *
+ * @param config Pointer to a config_t structure containing the settings to be saved.
+ * 
  * @return `CONFIG_STATUS_OK` if the configuration is successfully saved \\
  * @return `CONFIG_STATUS_ERROR` otherwise.
  *
@@ -80,11 +76,10 @@ config_status_t config_save(nvs_handle_t handle, config_t* config);
 /**
  * @brief Checks whether the device has been configured.
  *
- * Reads the "configured" flag from NVS storage to determine if a valid
- * configuration exists.
+ * Reads the "configured" flag from NVS storage to determine if a valid configuration exists.
  *
  * @param handle An open NVS handle for the "config" namespace.
- *
+ * 
  * @return `true` if the device has been configured \\
  * @return `false` otherwise.
  */
@@ -98,9 +93,8 @@ bool is_configured(nvs_handle_t handle);
  *
  * @param config Pointer to the config_t structure to be cleaned up.
  *
- * @note After calling this function, the `config` structure should not be
- * accessed.
+ * @note After calling this function, the `config` structure should not be accessed.
  */
-void config_close(config_t** config);
+void config_close(config_t* config);
 
 #endif
