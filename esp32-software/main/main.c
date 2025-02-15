@@ -9,6 +9,7 @@
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "motion_sensor.h"
 #include "nvs.h"
 #include "nvs_flash.h"
 #include "wifi_manager.h"
@@ -32,6 +33,11 @@ void app_main(void) {
 	config_t* device_cfg;
 
 	if (boot_sequence(&device_cfg) != ESP_OK) return;
+
+	if (init_motion_sensor() != ESP_OK) {
+		ESP_LOGE("app_main", "Failed to initialize motion sensor. Turning off.");
+		return;
+	}
 
 	while (true) {
 		vTaskDelay(1000 / portTICK_PERIOD_MS);

@@ -169,7 +169,7 @@ bool is_configured(nvs_handle_t handle) {
 }
 
 void config_close(config_t** config) {
-	if (*config == NULL) {
+	if (config == NULL || *config == NULL) {
 		return;
 	}
 
