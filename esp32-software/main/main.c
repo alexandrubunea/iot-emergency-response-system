@@ -12,6 +12,7 @@
 #include "motion_sensor.h"
 #include "nvs.h"
 #include "nvs_flash.h"
+#include "sound_sensor.h"
 #include "wifi_manager.h"
 
 /* ESP32 Configuration */
@@ -36,6 +37,11 @@ void app_main(void) {
 
 	if (init_motion_sensor() != ESP_OK) {
 		ESP_LOGE("app_main", "Failed to initialize motion sensor. Turning off.");
+		return;
+	}
+
+	if (init_sound_sensor() != ESP_OK) {
+		ESP_LOGE("app_main", "Failed to initialize sound sensor. Turning off.");
 		return;
 	}
 
