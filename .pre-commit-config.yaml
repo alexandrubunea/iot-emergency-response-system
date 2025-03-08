@@ -29,6 +29,7 @@ repos:
           - pytest
           - flask
           - requests
+          - psycopg2
 
 -   repo: https://github.com/pocc/pre-commit-hooks
     rev: v1.3.5
