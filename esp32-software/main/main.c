@@ -7,6 +7,7 @@
 #include "esp_http_server.h"
 #include "esp_log.h"
 #include "esp_wifi.h"
+#include "fire_sensor.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "motion_sensor.h"
@@ -42,6 +43,11 @@ void app_main(void) {
 
 	if (init_sound_sensor() != ESP_OK) {
 		ESP_LOGE("app_main", "Failed to initialize sound sensor. Turning off.");
+		return;
+	}
+
+	if (init_fire_sensor() != ESP_OK) {
+		ESP_LOGE("app_main", "Failed to initialize fire sensor. Turning off.");
 		return;
 	}
 
