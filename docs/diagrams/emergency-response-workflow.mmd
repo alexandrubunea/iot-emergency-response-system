@@ -9,9 +9,10 @@ flowchart LR
         ESP32[ESP32 Microcontroller]
         ReqIntervention[Request Intervention]
         subgraph Sensors
-            Smoke[Smoke Detector]
+            Gas[Gas Detector]
             Motion[Motion Detector]
             Sound[Sound Detector]
+            Fire[Fire Detector]
         end
         subgraph ECheckMal[Event: Malfunction Detector]
             MalfunctionCheck{Check for Malfunction}
@@ -35,12 +36,20 @@ flowchart LR
                 CheckFire --> FireFound
                 CheckFire --> NoFire
             end
+            subgraph ECheckGas[Event: Toxic Gas Detector]
+                CheckGas{Check for Toxic Gas}
+                NoGas[No Gas]
+                GasFound[Gas Found]
+                CheckGas --> GasFound
+                CheckGas --> NoGas
+            end
         end
         Sensors -->|Sends data| ESP32
         ESP32 -->|Check for malfunction| ECheckMal
         NoMalfunction -->|Check for emergency| EmergencyDetector
         IntruderFound -->|Send Intruder Alarm| ReqIntervention
         FireFound -->|Send Fire Alarm| ReqIntervention
+        GasFound -->|Send Gas Alarm| ReqIntervention
     end
     subgraph Support[Support Team]
         Malfunction[Malfunction]
