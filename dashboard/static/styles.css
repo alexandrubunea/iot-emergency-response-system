@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Koh+Santepheap:wght@100;300;400;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.koh-santepheap-thin {
+    font-family: "Koh Santepheap", serif;
+    font-weight: 100;
+    font-style: normal;
+  }
+
+  .koh-santepheap-light {
+    font-family: "Koh Santepheap", serif;
+    font-weight: 300;
+    font-style: normal;
+  }
+
+  .koh-santepheap-regular {
+    font-family: "Koh Santepheap", serif;
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  .koh-santepheap-bold {
+    font-family: "Koh Santepheap", serif;
+    font-weight: 700;
+    font-style: normal;
+  }
+
+  .koh-santepheap-black {
+    font-family: "Koh Santepheap", serif;
+    font-weight: 900;
+    font-style: normal;
+  }

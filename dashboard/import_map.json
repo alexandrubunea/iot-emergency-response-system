@@ -1,0 +1,7 @@
+{
+    "imports": {
+      "@alloc/quick-lru": "npm:@alloc/quick-lru@5.2.0",
+      "tailwindcss": "npm:tailwindcss@3.4.1",
+      "tailwindcss/": "npm:/tailwindcss@3.4.1/"
+    }
+  }
