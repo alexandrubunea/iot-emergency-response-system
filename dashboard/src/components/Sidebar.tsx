@@ -25,7 +25,7 @@ function Sidebar({
             <div
                 className={`
                 bg-zinc-800 text-zinc-200 fixed lg:relative z-40
-                w-64 min-h-screen px-3 py-5
+                min-w-64 min-h-screen px-3 py-5
                 transform transition-transform duration-300 ease-in-out
                 ${
                     isMobileMenuOpen
