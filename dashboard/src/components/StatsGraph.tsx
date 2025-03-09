@@ -165,6 +165,7 @@ function StatsGraph() {
                     padding: 15,
                     font: {
                         size: 12,
+                        family: "'Poppins', sans-serif"
                     },
                 },
             },
@@ -174,6 +175,7 @@ function StatsGraph() {
                 text: `Stats over the selected range: ${selectedRange}`,
                 font: {
                     size: 14,
+                    family: "'Poppins', sans-serif"
                 },
                 padding: {
                     top: 10,
@@ -183,9 +185,11 @@ function StatsGraph() {
             tooltip: {
                 titleFont: {
                     size: 13,
+                    family: "'Poppins', sans-serif"
                 },
                 bodyFont: {
                     size: 12,
+                    family: "'Poppins', sans-serif"
                 },
             },
         },
