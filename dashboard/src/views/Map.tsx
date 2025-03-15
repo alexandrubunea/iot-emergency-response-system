@@ -77,7 +77,6 @@ function Map() {
                 scrollWheelZoom={true}
                 doubleClickZoom={false}
                 minZoom={15}
-                maxZoom={20}
                 zoomControl={false}
                 className="h-screen w-full poppins-regular"
             >
