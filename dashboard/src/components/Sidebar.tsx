@@ -12,7 +12,7 @@ function Sidebar({
     return (
         <>
             <button
-                className="lg:hidden fixed top-4 left-4 z-50 bg-zinc-800 p-2 rounded-md text-zinc-200"
+                className="lg:hidden fixed top-4 left-4 z-[999] bg-zinc-800 p-2 rounded-md text-zinc-200"
                 onClick={toggleMobileMenu}
             >
                 <i
@@ -24,7 +24,7 @@ function Sidebar({
 
             <div
                 className={`
-                bg-zinc-800 text-zinc-200 fixed lg:relative z-40
+                bg-zinc-800 text-zinc-200 fixed lg:relative z-[998]
                 min-w-64 min-h-screen px-3 py-5
                 transform transition-transform duration-300 ease-in-out
                 ${
@@ -66,7 +66,7 @@ function Sidebar({
 
             {isMobileMenuOpen && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+                    className="fixed inset-0 bg-black bg-opacity-50 z-[997] lg:hidden"
                     onClick={toggleMobileMenu}
                 ></div>
             )}
