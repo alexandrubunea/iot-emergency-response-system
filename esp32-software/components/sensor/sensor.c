@@ -10,22 +10,25 @@
 
 static const char* TAG = "sensor";
 
+static adc_oneshot_unit_handle_t adc_handle = NULL;	 // Make ADC handle global for the unit
+
 static esp_err_t init_analog(Sensor** sensor) {
 	if (sensor == NULL || *sensor == NULL) {
 		ESP_LOGE(TAG, "Sensor pointer is NULL.");
 		return ESP_FAIL;
 	}
 
-	adc_oneshot_unit_handle_t adc_handle;
 	adc_unit_t unit = ADC_UNIT_1;
 	adc_oneshot_unit_init_cfg_t init_config = {
 		.unit_id = unit,
 		.ulp_mode = ADC_ULP_MODE_DISABLE,
 	};
 
-	if (adc_oneshot_new_unit(&init_config, &adc_handle) != ESP_OK) {
-		ESP_LOGE(TAG, "Failed to initialize ADC oneshot unit.");
-		return ESP_FAIL;
+	if (adc_handle == NULL) {
+		if (adc_oneshot_new_unit(&init_config, &adc_handle) != ESP_OK) {
+			ESP_LOGE(TAG, "Failed to initialize ADC oneshot unit.");
+			return ESP_FAIL;
+		}
 	}
 
 	adc_oneshot_chan_cfg_t config = {
@@ -36,18 +39,15 @@ static esp_err_t init_analog(Sensor** sensor) {
 	adc_channel_t channel;
 	if (adc_oneshot_io_to_channel((*sensor)->gpio, &unit, &channel) != ESP_OK) {
 		ESP_LOGE(TAG, "Failed to convert GPIO %d to ADC channel.", (*sensor)->gpio);
-		adc_oneshot_del_unit(adc_handle);
 		return ESP_FAIL;
 	}
 
 	if (adc_oneshot_config_channel(adc_handle, channel, &config) != ESP_OK) {
 		ESP_LOGE(TAG, "Failed to configure ADC channel for GPIO %d.", (*sensor)->gpio);
-		adc_oneshot_del_unit(adc_handle);
 		return ESP_FAIL;
 	}
 
 	(*sensor)->adc_channel = channel;
-	(*sensor)->adc_handle = adc_handle;
 
 	return ESP_OK;
 }
@@ -78,7 +78,7 @@ int read_signal(const Sensor* sensor) {
 
 	int signal_value;
 
-	if (adc_oneshot_read(sensor->adc_handle, sensor->adc_channel, &signal_value) != ESP_OK) {
+	if (adc_oneshot_read(adc_handle, sensor->adc_channel, &signal_value) != ESP_OK) {
 		ESP_LOGE(TAG, "Error occurred while trying to read analog data.");
 		return -1;
 	}
@@ -89,7 +89,7 @@ int read_signal(const Sensor* sensor) {
 void delete_sensor(Sensor** sensor) {
 	if (sensor == NULL || *sensor == NULL) return;
 
-	if (!(*sensor)->is_digital && adc_oneshot_del_unit((*sensor)->adc_handle) != ESP_OK) {
+	if (!(*sensor)->is_digital && adc_oneshot_del_unit(adc_handle) != ESP_OK) {
 		ESP_LOGE(TAG, "Error occurred while trying to delete ADC oneshot unit.");
 	}
 

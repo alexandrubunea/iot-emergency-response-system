@@ -13,7 +13,6 @@ typedef struct sensor {
 	int treshold;
 
 	adc_channel_t adc_channel;
-	adc_oneshot_unit_handle_t adc_handle;
 } Sensor;
 
 /**

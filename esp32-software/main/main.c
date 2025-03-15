@@ -10,6 +10,7 @@
 #include "fire_sensor.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "gas_sensor.h"
 #include "motion_sensor.h"
 #include "nvs.h"
 #include "nvs_flash.h"
@@ -48,6 +49,11 @@ void app_main(void) {
 
 	if (init_fire_sensor() != ESP_OK) {
 		ESP_LOGE("app_main", "Failed to initialize fire sensor. Turning off.");
+		return;
+	}
+
+	if (init_gas_sensor() != ESP_OK) {
+		ESP_LOGE("app_main", "Failed to initialize gas sensor. Turning off.");
 		return;
 	}
 
