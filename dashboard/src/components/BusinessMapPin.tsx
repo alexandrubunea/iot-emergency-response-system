@@ -1,5 +1,8 @@
 import { Marker, Popup } from "react-leaflet";
 import { Icon } from "leaflet";
+import ResetAlertButton from "./ResetAlertButton";
+import ResetMalfunctionButton from "./ResetMalfunctionButton";
+import ViewLogsButton from "./ViewLogsButton";
 
 type BusinessMapPinProps = {
     name: string;
@@ -112,18 +115,15 @@ function BusinessMapPin({
                         {(alert || malfunction) && (
                             <div className="mt-5 flex flex-col space-y-2 items-center">
                                 {alert && (
-                                    <button className="rounded-md p-3 w-full uppercase poppins-bold hover:cursor-pointer text-zinc-200 bg-rose-700 hover:bg-rose-900 transition-colors duration-300">
-                                        Reset Alert
-                                    </button>
+                                    <ResetAlertButton />
                                 )}
                                 {malfunction && (
-                                    <button className="rounded-md p-3 w-full uppercase poppins-bold hover:cursor-pointer text-zinc-200 bg-amber-700 hover:bg-amber-900 transition-colors duration-300">
-                                        Reset Malfunction
-                                    </button>
+                                    <ResetMalfunctionButton />
                                 )}
                             </div>
                         )}
-                        <button className="mt-5 rounded-md p-3 w-full uppercase poppins-bold hover:cursor-pointer text-zinc-200 bg-emerald-500 hover:bg-emerald-700 transition-colors duration-300">View Logs</button>
+
+                        <ViewLogsButton />
                     </div>
                 </Popup>
             </Marker>
