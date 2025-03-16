@@ -9,41 +9,49 @@ function Map() {
             name: "The Pharma",
             lat: 45.6549781,
             lon: 25.6017911,
+            number_of_devices: 2,
             motion: 1,
             sound: 1,
             fire: 1,
             gas: 1,
             alert: true,
+            malfunction: false,
         },
         {
             name: "Some Restaurant",
             lat: 45.6541784,
             lon: 25.6145364,
+            number_of_devices: 5,
             motion: 1,
             sound: 1,
             fire: -1,
             gas: 1,
             alert: false,
+            malfunction: true,
         },
         {
             name: "Pizza? Ok",
             lat: 45.6592795,
             lon: 25.5984613,
+            number_of_devices: 3,
             motion: 1,
             sound: 1,
             fire: 0,
             gas: 1,
             alert: true,
+            malfunction: true,
         },
         {
             name: "Hospital",
             lat: 45.6482229,
             lon: 25.6010333,
+            number_of_devices: 20,
             motion: 1,
             sound: 1,
             fire: 1,
             gas: 1,
             alert: false,
+            malfunction: false,
         },
     ];
     const mockup_cars = [
@@ -91,11 +99,13 @@ function Map() {
                         name={business.name}
                         lon={business.lon}
                         lat={business.lat}
+                        number_of_devices={business.number_of_devices}
                         motion={business.motion}
                         sound={business.sound}
                         fire={business.fire}
                         gas={business.gas}
                         alert={business.alert}
+                        malfunction={business.malfunction}
                     />
                 ))}
                 {mockup_cars.map((car, index) => (

@@ -5,6 +5,7 @@ type BusinessMapPinProps = {
     name: string;
     lat: number;
     lon: number;
+    number_of_devices: number;
 
     // Sensor Status:
     // -1 = disabled, 0 = offline, 1 = online
@@ -14,17 +15,20 @@ type BusinessMapPinProps = {
     gas: number;
 
     alert: boolean;
+    malfunction: boolean;
 };
 
 function BusinessMapPin({
     name,
     lat,
     lon,
+    number_of_devices,
     motion,
     sound,
     fire,
     gas,
     alert,
+    malfunction,
 }: BusinessMapPinProps) {
     const business_icon = new Icon({
         iconUrl: "/icons/business_icon.png",
@@ -44,8 +48,15 @@ function BusinessMapPin({
         <>
             <Marker position={[lat, lon]} icon={business_icon}>
                 <Popup>
-                    <div className="p-4 bg-zinc-900 text-zinc-200 rounded-lg shadow-md poppins-medium w-56">
-                        <h3 className="text-xl poppins-black mb-2">{name}</h3>
+                    <div className="p-4 bg-zinc-900 text-zinc-200 rounded-lg shadow-md poppins-medium w-64">
+                        <div className="flex flex-col space-x-2 mb-5">
+                            <h3 className="text-xl poppins-black">
+                                {name}
+                            </h3>
+                            <span className="text-xs poppins-light">
+                                Number of devices used: {number_of_devices}
+                            </span>
+                        </div>
                         <ul className="space-y-1">
                             {sensors
                                 .filter((sensor) => sensor.show)
@@ -70,22 +81,49 @@ function BusinessMapPin({
                                 ))}
                         </ul>
                         <hr className="my-5"></hr>
-                        {alert ? (
-                            <h3 className="text-red-500 poppins-black uppercase flex flex-row gap-2">
-                                <i className="fa-solid fa-land-mine-on text-2xl"></i>
-                                <span>
-                                    Property on alert. Intervention Required.
-                                </span>
-                            </h3>
-                        ) : (
-                            <h3 className="text-green-500 poppins-bold flex flex-row gap-2">
-                                <i className="fa-solid fa-shield text-2xl"></i>
-                                <span>
-                                    Safe property. <br></br>
-                                    No action required.
-                                </span>
-                            </h3>
+                        <div className="flex flex-col space-y-2">
+                            {alert ? (
+                                <h3 className="text-red-500 poppins-black uppercase flex flex-row gap-2">
+                                    <i className="fa-solid fa-land-mine-on text-2xl"></i>
+                                    <span>
+                                        Property on alert. Intervention
+                                        Required.
+                                    </span>
+                                </h3>
+                            ) : (
+                                <h3 className="text-green-500 poppins-bold flex flex-row gap-2">
+                                    <i className="fa-solid fa-shield text-2xl"></i>
+                                    <span>
+                                        Safe property. <br></br>
+                                        No action required.
+                                    </span>
+                                </h3>
+                            )}
+                            {malfunction && (
+                                <h3 className="text-orange-500 poppins-black uppercase flex flex-row gap-2">
+                                    <i className="fa-solid fa-bug text-2xl"></i>
+                                    <span>
+                                        WARNING: A device used by bussiness have
+                                        a malfunction.
+                                    </span>
+                                </h3>
+                            )}
+                        </div>
+                        {(alert || malfunction) && (
+                            <div className="mt-5 flex flex-col space-y-2 items-center">
+                                {alert && (
+                                    <button className="rounded-md p-3 w-full uppercase poppins-bold hover:cursor-pointer text-zinc-200 bg-rose-700 hover:bg-rose-900 transition-colors duration-300">
+                                        Reset Alert
+                                    </button>
+                                )}
+                                {malfunction && (
+                                    <button className="rounded-md p-3 w-full uppercase poppins-bold hover:cursor-pointer text-zinc-200 bg-amber-700 hover:bg-amber-900 transition-colors duration-300">
+                                        Reset Malfunction
+                                    </button>
+                                )}
+                            </div>
                         )}
+                        <button className="mt-5 rounded-md p-3 w-full uppercase poppins-bold hover:cursor-pointer text-zinc-200 bg-emerald-500 hover:bg-emerald-700 transition-colors duration-300">View Logs</button>
                     </div>
                 </Popup>
             </Marker>
