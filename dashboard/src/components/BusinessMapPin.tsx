@@ -53,9 +53,7 @@ function BusinessMapPin({
                 <Popup>
                     <div className="p-4 bg-zinc-900 text-zinc-200 rounded-lg shadow-md poppins-medium w-64">
                         <div className="flex flex-col space-x-2 mb-5">
-                            <h3 className="text-xl poppins-black">
-                                {name}
-                            </h3>
+                            <h3 className="text-xl poppins-black">{name}</h3>
                             <span className="text-xs poppins-light">
                                 Number of devices used: {number_of_devices}
                             </span>
@@ -114,12 +112,8 @@ function BusinessMapPin({
                         </div>
                         {(alert || malfunction) && (
                             <div className="mt-5 flex flex-col space-y-2 items-center">
-                                {alert && (
-                                    <ResetAlertButton />
-                                )}
-                                {malfunction && (
-                                    <ResetMalfunctionButton />
-                                )}
+                                {alert && <ResetAlertButton />}
+                                {malfunction && <ResetMalfunctionButton />}
                             </div>
                         )}
 
