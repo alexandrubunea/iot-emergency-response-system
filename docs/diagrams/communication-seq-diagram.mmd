@@ -1,0 +1,25 @@
+---
+config:
+  theme: base
+  look: classic
+---
+sequenceDiagram
+    participant SecurityDevice as Security Device
+    participant API as API Server / Communication Node
+    participant DB as Database
+    participant Dashboard as Web Dashboard
+
+    actor Operator
+
+    SecurityDevice->>API: Periodic status update (online check)
+    SecurityDevice--)API: Notify malfunction
+    SecurityDevice--)API: Alert: Intruder/Fire detected
+
+    API->>DB: Store security device activity log
+    API->>Dashboard: Send urgent alerts
+
+    Operator->>Dashboard: Monitor for suspicious activity
+    Dashboard->>API: Request activity logs
+    API->>DB: Fetch logs
+    DB->>API: Return logs
+    API->>Dashboard: Send requested logs

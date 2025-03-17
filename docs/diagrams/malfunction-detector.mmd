@@ -1,0 +1,16 @@
+---
+config:
+  theme: base
+  layout: elk
+---
+flowchart TD
+    subgraph MalfunctionDetector["Malfunction Detector (Hardware)"]
+        PowerSource["Power Source"]
+        Sensor["General Purpose Sensor"]
+        INA219["INA219 Sensor (Current Monitor)"]
+        ESP32["ESP32 (Microcontroller)"]
+    end
+    PowerSource -- Powers --> INA219 & ESP32
+    INA219 -- Monitors current of --> Sensor
+    INA219 -- Sends current data to --> ESP32
+    Sensor -- Sends sensor data to --> ESP32
