@@ -7,10 +7,14 @@
 #include "esp_http_server.h"
 #include "esp_log.h"
 #include "esp_wifi.h"
+#include "fire_sensor.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "gas_sensor.h"
+#include "motion_sensor.h"
 #include "nvs.h"
 #include "nvs_flash.h"
+#include "sound_sensor.h"
 #include "wifi_manager.h"
 
 /* ESP32 Configuration */
@@ -32,6 +36,26 @@ void app_main(void) {
 	config_t* device_cfg;
 
 	if (boot_sequence(&device_cfg) != ESP_OK) return;
+
+	if (init_motion_sensor() != ESP_OK) {
+		ESP_LOGE("app_main", "Failed to initialize motion sensor. Turning off.");
+		return;
+	}
+
+	if (init_sound_sensor() != ESP_OK) {
+		ESP_LOGE("app_main", "Failed to initialize sound sensor. Turning off.");
+		return;
+	}
+
+	if (init_fire_sensor() != ESP_OK) {
+		ESP_LOGE("app_main", "Failed to initialize fire sensor. Turning off.");
+		return;
+	}
+
+	if (init_gas_sensor() != ESP_OK) {
+		ESP_LOGE("app_main", "Failed to initialize gas sensor. Turning off.");
+		return;
+	}
 
 	while (true) {
 		vTaskDelay(1000 / portTICK_PERIOD_MS);
