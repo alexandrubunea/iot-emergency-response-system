@@ -110,14 +110,11 @@ function BusinessMapPin({
                                 </h3>
                             )}
                         </div>
-                        {(alert || malfunction) && (
-                            <div className="mt-5 flex flex-col space-y-2 items-center">
-                                {alert && <ResetAlertButton />}
-                                {malfunction && <ResetMalfunctionButton />}
-                            </div>
-                        )}
-
-                        <ViewLogsButton />
+                        <div className="mt-5 flex flex-col space-y-2 items-center">
+                            {alert && <ResetAlertButton />}
+                            {malfunction && <ResetMalfunctionButton />}
+                            <ViewLogsButton />
+                        </div>
                     </div>
                 </Popup>
             </Marker>
