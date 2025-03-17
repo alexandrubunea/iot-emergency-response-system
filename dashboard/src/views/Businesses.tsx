@@ -42,7 +42,6 @@ function Businesses() {
                 new Device("Bathroom", SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_ONLINE)
             ],
             true,
-            false
         ),
         new Business(
             "Some Restaurant",
@@ -53,7 +52,6 @@ function Businesses() {
                 new Device("Bathroom", SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_MALFUNCTION, SensorStatus.SENSOR_NOT_USED, SensorStatus.SENSOR_ONLINE)
             ],
             false,
-            true
         ),
         new Business(
             "Pizza? Ok",
@@ -64,7 +62,6 @@ function Businesses() {
                 new Device("Bathroom", SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_OFFLINE, SensorStatus.SENSOR_MALFUNCTION)
             ],
             true,
-            true
         ),
         new Business(
             "Hospital",
@@ -75,7 +72,6 @@ function Businesses() {
                 new Device("Bathroom", SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_ONLINE)
             ],
             false,
-            false
         )
     ];
 

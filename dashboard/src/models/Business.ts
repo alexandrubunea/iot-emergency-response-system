@@ -12,7 +12,6 @@ export class Business implements IBusiness {
     devices: Array<Device>;
 
     alert: boolean;
-    malfunction: boolean;
 
     constructor(
         name: string,
@@ -20,8 +19,7 @@ export class Business implements IBusiness {
         lat: number,
         lon: number,
         devices: Array<Device>,
-        alert: boolean,
-        malfunction: boolean
+        alert: boolean
     ) {
         this.name = name;
         this.address = address;
@@ -29,7 +27,6 @@ export class Business implements IBusiness {
         this.lon = lon;
         this.devices = devices;
         this.alert = alert;
-        this.malfunction = malfunction;
     }
 
     public anyBrokenDevice(): boolean {
@@ -41,7 +38,7 @@ export class Business implements IBusiness {
 
     public getSensorStatusByType(sensor_type: string): SensorStatus {
         sensor_type = sensor_type.toLowerCase();
-        let atleastOneSensor:boolean = false;
+        let atleastOneSensor: boolean = false;
 
         switch (sensor_type) {
             default:
@@ -49,47 +46,51 @@ export class Business implements IBusiness {
                     "Invalid sensor type. Valid types: motion, sound, fire, gas"
                 );
             case "motion": {
-                this.devices.forEach((device) => {
-                    if (device.motion_sensor == SensorStatus.SENSOR_MALFUNCTION)
-                        return SensorStatus.SENSOR_MALFUNCTION;
-                    if (device.motion_sensor == SensorStatus.SENSOR_OFFLINE)
-                        return SensorStatus.SENSOR_OFFLINE;
-                    if (device.motion_sensor == SensorStatus.SENSOR_ONLINE)
+                for (let device of this.devices) {
+                    if (device.motion_sensor === SensorStatus.SENSOR_MALFUNCTION ||
+                        device.motion_sensor === SensorStatus.SENSOR_OFFLINE) {
+                        return device.motion_sensor;
+                    }
+                    if (device.motion_sensor === SensorStatus.SENSOR_ONLINE) {
                         atleastOneSensor = true;
-                });
+                    }
+                }
                 break;
             }
             case "sound": {
-                this.devices.forEach((device) => {
-                    if (device.sound_sensor == SensorStatus.SENSOR_MALFUNCTION)
-                        return SensorStatus.SENSOR_MALFUNCTION;
-                    if (device.sound_sensor == SensorStatus.SENSOR_OFFLINE)
-                        return SensorStatus.SENSOR_OFFLINE;
-                    if (device.sound_sensor == SensorStatus.SENSOR_ONLINE)
+                for (let device of this.devices) {
+                    if (device.sound_sensor === SensorStatus.SENSOR_MALFUNCTION ||
+                        device.sound_sensor === SensorStatus.SENSOR_OFFLINE) {
+                        return device.sound_sensor;
+                    }
+                    if (device.sound_sensor === SensorStatus.SENSOR_ONLINE) {
                         atleastOneSensor = true;
-                });
+                    }
+                }
                 break;
             }
             case "fire": {
-                this.devices.forEach((device) => {
-                    if (device.fire_sensor == SensorStatus.SENSOR_MALFUNCTION)
-                        return SensorStatus.SENSOR_MALFUNCTION;
-                    if (device.fire_sensor == SensorStatus.SENSOR_OFFLINE)
-                        return SensorStatus.SENSOR_OFFLINE;
-                    if (device.fire_sensor == SensorStatus.SENSOR_ONLINE)
+                for (let device of this.devices) {
+                    if (device.fire_sensor === SensorStatus.SENSOR_MALFUNCTION ||
+                        device.fire_sensor === SensorStatus.SENSOR_OFFLINE) {
+                        return device.fire_sensor;
+                    }
+                    if (device.fire_sensor === SensorStatus.SENSOR_ONLINE) {
                         atleastOneSensor = true;
-                });
+                    }
+                }
                 break;
             }
             case "gas": {
-                this.devices.forEach((device) => {
-                    if (device.gas_sensor == SensorStatus.SENSOR_MALFUNCTION)
-                        return SensorStatus.SENSOR_MALFUNCTION;
-                    if (device.gas_sensor == SensorStatus.SENSOR_OFFLINE)
-                        return SensorStatus.SENSOR_OFFLINE;
-                    if (device.gas_sensor == SensorStatus.SENSOR_ONLINE)
+                for (let device of this.devices) {
+                    if (device.gas_sensor === SensorStatus.SENSOR_MALFUNCTION ||
+                        device.gas_sensor === SensorStatus.SENSOR_OFFLINE) {
+                        return device.gas_sensor;
+                    }
+                    if (device.gas_sensor === SensorStatus.SENSOR_ONLINE) {
                         atleastOneSensor = true;
-                });
+                    }
+                }
                 break;
             }
         }

@@ -10,5 +10,4 @@ export type IBusiness = {
     devices: Array<Device>,
 
     alert: boolean,
-    malfunction: boolean
 }
