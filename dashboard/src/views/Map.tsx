@@ -23,7 +23,6 @@ function Map() {
                 ),
             ],
             true,
-            false
         ),
         new Business(
             "Some Restaurant",
@@ -40,7 +39,6 @@ function Map() {
                 ),
             ],
             false,
-            true
         ),
         new Business(
             "Pizza? Ok",
@@ -57,7 +55,6 @@ function Map() {
                 ),
             ],
             true,
-            true
         ),
         new Business(
             "Hospital",
@@ -74,7 +71,6 @@ function Map() {
                 ),
             ],
             false,
-            false
         ),
     ];
 
