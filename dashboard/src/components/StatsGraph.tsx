@@ -227,13 +227,13 @@ function StatsGraph() {
     return (
         <div className="flex flex-col w-full">
             <div className="w-full overflow-x-auto pb-2">
-                <ul className="flex space-x-2 poppins-light min-w-max mb-3">
+                <ul className="flex flex-col md:flex-row gap-2 poppins-light min-w-max mb-3 items-center">
                     {Object.keys(dataForTimeRanges).map((range) => (
                         <li
                             key={range}
                             onClick={() => setSelectedRange(range as TimeRange)}
                             className={`
-                                p-2 md:p-3 rounded-md hover:bg-zinc-950 hover:cursor-pointer
+                                p-2 md:p-3 rounded-md hover:bg-zinc-950 hover:cursor-pointer w-full md:w-36
                                 text-center transition-colors duration-300 text-sm md:text-base
                                 ${
                                     range === selectedRange
