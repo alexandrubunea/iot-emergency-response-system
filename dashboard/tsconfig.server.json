@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+      "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.server.tsbuildinfo",
+      "target": "ES2022",
+      "lib": ["ES2023"],
+      "module": "NodeNext",
+      "skipLibCheck": true,
+      "moduleResolution": "NodeNext",
+      "allowSyntheticDefaultImports": true,
+      "esModuleInterop": true,
+      "isolatedModules": true,
+      "outDir": "./dist-server",
+      "strict": true,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "noFallthroughCasesInSwitch": true
+    },
+    "include": ["server.ts"]
+  }

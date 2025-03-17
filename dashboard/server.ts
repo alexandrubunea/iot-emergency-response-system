@@ -1,27 +1,22 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Get the directory name correctly in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
-// Serve static files from the Vite build output directory
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Parse JSON bodies
 app.use(express.json());
 
-// API routes
-app.get('/api/hello', (req, res) => {
+app.get('/api/hello', (_: Request, res: Response) => {
   res.json({ message: 'Hello from Express!' });
 });
 
-// For development, handle all other routes by returning the Vite app
-app.get('*', (req, res) => {
+app.get('*', (_: Request, res: Response) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
