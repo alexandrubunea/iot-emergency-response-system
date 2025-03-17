@@ -1,59 +1,83 @@
 import { MapContainer, TileLayer, ZoomControl } from "react-leaflet";
 import BusinessMapPin from "../components/BusinessMapPin";
 import CarMapPin from "../components/CarMapPin";
+import { Business } from "../models/Business";
+import { Device } from "../models/Device";
+import { SensorStatus } from "../types/Device";
 
 function Map() {
     // will be removed after api implementation
-    const mockup_businesses = [
-        {
-            name: "The Pharma",
-            lat: 45.6549781,
-            lon: 25.6017911,
-            number_of_devices: 2,
-            motion: 1,
-            sound: 1,
-            fire: 1,
-            gas: 1,
-            alert: true,
-            malfunction: false,
-        },
-        {
-            name: "Some Restaurant",
-            lat: 45.6541784,
-            lon: 25.6145364,
-            number_of_devices: 5,
-            motion: 1,
-            sound: 1,
-            fire: -1,
-            gas: 1,
-            alert: false,
-            malfunction: true,
-        },
-        {
-            name: "Pizza? Ok",
-            lat: 45.6592795,
-            lon: 25.5984613,
-            number_of_devices: 3,
-            motion: 1,
-            sound: 1,
-            fire: 0,
-            gas: 1,
-            alert: true,
-            malfunction: true,
-        },
-        {
-            name: "Hospital",
-            lat: 45.6482229,
-            lon: 25.6010333,
-            number_of_devices: 20,
-            motion: 1,
-            sound: 1,
-            fire: 1,
-            gas: 1,
-            alert: false,
-            malfunction: false,
-        },
+    const businesses = [
+        new Business(
+            "The Pharma",
+            "Some Street, Number 7",
+            45.6549781,
+            25.6017911,
+            [
+                new Device(
+                    "Bathroom",
+                    SensorStatus.SENSOR_ONLINE,
+                    SensorStatus.SENSOR_ONLINE,
+                    SensorStatus.SENSOR_ONLINE,
+                    SensorStatus.SENSOR_ONLINE
+                ),
+            ],
+            true,
+            false
+        ),
+        new Business(
+            "Some Restaurant",
+            "Some Street, Number 7",
+            45.6541784,
+            25.6145364,
+            [
+                new Device(
+                    "Bathroom",
+                    SensorStatus.SENSOR_ONLINE,
+                    SensorStatus.SENSOR_MALFUNCTION,
+                    SensorStatus.SENSOR_NOT_USED,
+                    SensorStatus.SENSOR_ONLINE
+                ),
+            ],
+            false,
+            true
+        ),
+        new Business(
+            "Pizza? Ok",
+            "Some Street, Number 7",
+            45.6592795,
+            25.5984613,
+            [
+                new Device(
+                    "Bathroom",
+                    SensorStatus.SENSOR_ONLINE,
+                    SensorStatus.SENSOR_ONLINE,
+                    SensorStatus.SENSOR_OFFLINE,
+                    SensorStatus.SENSOR_MALFUNCTION
+                ),
+            ],
+            true,
+            true
+        ),
+        new Business(
+            "Hospital",
+            "Some Street, Number 7",
+            45.6482229,
+            25.6010333,
+            [
+                new Device(
+                    "Bathroom",
+                    SensorStatus.SENSOR_ONLINE,
+                    SensorStatus.SENSOR_ONLINE,
+                    SensorStatus.SENSOR_ONLINE,
+                    SensorStatus.SENSOR_ONLINE
+                ),
+            ],
+            false,
+            false
+        ),
     ];
+
     const mockup_cars = [
         {
             license_plate: "BV02WSC",
@@ -93,20 +117,8 @@ function Map() {
                     url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
                 />
                 <ZoomControl position="bottomright" />
-                {mockup_businesses.map((business, index) => (
-                    <BusinessMapPin
-                        key={index}
-                        name={business.name}
-                        lon={business.lon}
-                        lat={business.lat}
-                        number_of_devices={business.number_of_devices}
-                        motion={business.motion}
-                        sound={business.sound}
-                        fire={business.fire}
-                        gas={business.gas}
-                        alert={business.alert}
-                        malfunction={business.malfunction}
-                    />
+                {businesses.map((business, index) => (
+                    <BusinessMapPin key={index} business={business} />
                 ))}
                 {mockup_cars.map((car, index) => (
                     <CarMapPin

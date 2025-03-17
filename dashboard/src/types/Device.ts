@@ -5,7 +5,7 @@ export enum SensorStatus {
     SENSOR_MALFUNCTION = 2,
 }
 
-export type Device = {
+export type IDevice = {
     name: string,
 
     motion_sensor: SensorStatus;

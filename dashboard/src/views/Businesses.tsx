@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import DOMPurify from "dompurify";
 import BusinessRow from "../components/BusinessRow";
-import { Business } from "../types/Business";
+import { Business } from "../models/Business";
 import { SensorStatus } from "../types/Device";
+import { Device } from "../models/Device";
 
 function Businesses() {
     const [isInvalidSearch, setInvalidSearch] = useState(false);
@@ -31,75 +32,51 @@ function Businesses() {
     };
 
     // Mock-up data... Will be removed.
-    const businesses: Business[] = [
-        {
-            name: "The Pharma",
-            lat: 45.6549781,
-            lon: 25.6017911,
-            address: "Some Street, Number 7",
-            alert: true,
-            malfunction: false,
-            devices: [
-                {
-                    name: "Bathroom",
-                    motion_sensor: SensorStatus.SENSOR_ONLINE,
-                    sound_sensor: SensorStatus.SENSOR_ONLINE,
-                    fire_sensor: SensorStatus.SENSOR_ONLINE,
-                    gas_sensor: SensorStatus.SENSOR_ONLINE,
-                },
+    const businesses = [
+        new Business(
+            "The Pharma",
+            "Some Street, Number 7",
+            45.6549781,
+            25.6017911,
+            [
+                new Device("Bathroom", SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_ONLINE)
             ],
-        },
-        {
-            name: "Some Restaurant",
-            lat: 45.6541784,
-            lon: 25.6145364,
-            address: "Some Street, Number 7",
-            alert: false,
-            malfunction: true,
-            devices: [
-                {
-                    name: "Bathroom",
-                    motion_sensor: SensorStatus.SENSOR_ONLINE,
-                    sound_sensor: SensorStatus.SENSOR_MALFUNCTION,
-                    fire_sensor: SensorStatus.SENSOR_NOT_USED,
-                    gas_sensor: SensorStatus.SENSOR_ONLINE,
-                },
+            true,
+            false
+        ),
+        new Business(
+            "Some Restaurant",
+            "Some Street, Number 7",
+            45.6541784,
+            25.6145364,
+            [
+                new Device("Bathroom", SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_MALFUNCTION, SensorStatus.SENSOR_NOT_USED, SensorStatus.SENSOR_ONLINE)
             ],
-        },
-        {
-            name: "Pizza? Ok",
-            lat: 45.6592795,
-            lon: 25.5984613,
-            address: "Some Street, Number 7",
-            alert: true,
-            malfunction: true,
-            devices: [
-                {
-                    name: "Bathroom",
-                    motion_sensor: SensorStatus.SENSOR_ONLINE,
-                    sound_sensor: SensorStatus.SENSOR_ONLINE,
-                    fire_sensor: SensorStatus.SENSOR_OFFLINE,
-                    gas_sensor: SensorStatus.SENSOR_MALFUNCTION,
-                },
+            false,
+            true
+        ),
+        new Business(
+            "Pizza? Ok",
+            "Some Street, Number 7",
+            45.6592795,
+            25.5984613,
+            [
+                new Device("Bathroom", SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_OFFLINE, SensorStatus.SENSOR_MALFUNCTION)
             ],
-        },
-        {
-            name: "Hospital",
-            lat: 45.6482229,
-            lon: 25.6010333,
-            address: "Some Street, Number 7",
-            alert: false,
-            malfunction: false,
-            devices: [
-                {
-                    name: "Bathroom",
-                    motion_sensor: SensorStatus.SENSOR_ONLINE,
-                    sound_sensor: SensorStatus.SENSOR_ONLINE,
-                    fire_sensor: SensorStatus.SENSOR_ONLINE,
-                    gas_sensor: SensorStatus.SENSOR_ONLINE,
-                },
+            true,
+            true
+        ),
+        new Business(
+            "Hospital",
+            "Some Street, Number 7",
+            45.6482229,
+            25.6010333,
+            [
+                new Device("Bathroom", SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_ONLINE, SensorStatus.SENSOR_ONLINE)
             ],
-        },
+            false,
+            false
+        )
     ];
 
     return (

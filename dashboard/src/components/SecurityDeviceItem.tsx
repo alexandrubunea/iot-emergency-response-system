@@ -1,4 +1,5 @@
-import { Device } from "../types/Device";
+import { Device } from "../models/Device";
+import { SensorStatus } from "../types/Device";
 
 type SecurityDeviceItemProps = {
     device: Device;
@@ -6,10 +7,10 @@ type SecurityDeviceItemProps = {
 
 function SecurityDeviceItem({device}: SecurityDeviceItemProps) {
     const sensors = [
-        { name: "Motion Detection", value: device.motion_sensor, show: device.motion_sensor !== -1 },
-        { name: "Sound Detection", value: device.sound_sensor, show: device.sound_sensor !== -1 },
-        { name: "Gas Detection", value: device.gas_sensor, show: device.gas_sensor !== -1 },
-        { name: "Fire Detection", value: device.fire_sensor, show: device.fire_sensor !== -1 },
+        { name: "Motion Detection", value: device.motion_sensor },
+        { name: "Sound Detection", value: device.sound_sensor },
+        { name: "Gas Detection", value: device.gas_sensor },
+        { name: "Fire Detection", value: device.fire_sensor },
     ];
 
     return (
@@ -18,7 +19,7 @@ function SecurityDeviceItem({device}: SecurityDeviceItemProps) {
                 <h1 className="text-md poppins-bold">{device.name}</h1>
                 <ul className="space-y-0 poppins-light text-sm">
                     {sensors
-                        .filter((sensor) => sensor.show)
+                        .filter((sensor) => sensor.value != SensorStatus.SENSOR_NOT_USED)
                         .map((sensor, index) => (
                             <li
                                 key={index}
@@ -29,19 +30,19 @@ function SecurityDeviceItem({device}: SecurityDeviceItemProps) {
                                     className={`
                                         ${
                                             sensor.value
-                                                ? sensor.value === 1
+                                                ? sensor.value === SensorStatus.SENSOR_ONLINE
                                                     ? "text-green-400"
                                                     : "text-amber-500"
                                                 : "text-red-400"
                                         }
                                         ${
-                                            sensor.value === 2
+                                            sensor.value === SensorStatus.SENSOR_MALFUNCTION || sensor.value == SensorStatus.SENSOR_OFFLINE
                                                 ? "animate__animated animate__pulse animate__infinite"
                                                 : ""
                                         }`}
                                 >
                                     {sensor.value
-                                        ? sensor.value === 1
+                                        ? sensor.value === SensorStatus.SENSOR_ONLINE
                                             ? "Online"
                                             : "Malfunction"
                                         : "Offline"}

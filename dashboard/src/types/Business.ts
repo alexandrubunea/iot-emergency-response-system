@@ -1,6 +1,6 @@
-import { Device } from "./Device"
+import { Device } from "../models/Device"
 
-export type Business = {
+export type IBusiness = {
     name: string,
 
     address: string,
