@@ -30,9 +30,9 @@ export class Business implements IBusiness {
     }
 
     public anyBrokenDevice(): boolean {
-        this.devices.forEach((device) => {
+        for (let device of this.devices)
             if (device.anyBrokenSensor()) return true;
-        });
+
         return false;
     }
 
@@ -47,8 +47,11 @@ export class Business implements IBusiness {
                 );
             case "motion": {
                 for (let device of this.devices) {
-                    if (device.motion_sensor === SensorStatus.SENSOR_MALFUNCTION ||
-                        device.motion_sensor === SensorStatus.SENSOR_OFFLINE) {
+                    if (
+                        device.motion_sensor ===
+                            SensorStatus.SENSOR_MALFUNCTION ||
+                        device.motion_sensor === SensorStatus.SENSOR_OFFLINE
+                    ) {
                         return device.motion_sensor;
                     }
                     if (device.motion_sensor === SensorStatus.SENSOR_ONLINE) {
@@ -59,8 +62,11 @@ export class Business implements IBusiness {
             }
             case "sound": {
                 for (let device of this.devices) {
-                    if (device.sound_sensor === SensorStatus.SENSOR_MALFUNCTION ||
-                        device.sound_sensor === SensorStatus.SENSOR_OFFLINE) {
+                    if (
+                        device.sound_sensor ===
+                            SensorStatus.SENSOR_MALFUNCTION ||
+                        device.sound_sensor === SensorStatus.SENSOR_OFFLINE
+                    ) {
                         return device.sound_sensor;
                     }
                     if (device.sound_sensor === SensorStatus.SENSOR_ONLINE) {
@@ -71,8 +77,11 @@ export class Business implements IBusiness {
             }
             case "fire": {
                 for (let device of this.devices) {
-                    if (device.fire_sensor === SensorStatus.SENSOR_MALFUNCTION ||
-                        device.fire_sensor === SensorStatus.SENSOR_OFFLINE) {
+                    if (
+                        device.fire_sensor ===
+                            SensorStatus.SENSOR_MALFUNCTION ||
+                        device.fire_sensor === SensorStatus.SENSOR_OFFLINE
+                    ) {
                         return device.fire_sensor;
                     }
                     if (device.fire_sensor === SensorStatus.SENSOR_ONLINE) {
@@ -83,8 +92,10 @@ export class Business implements IBusiness {
             }
             case "gas": {
                 for (let device of this.devices) {
-                    if (device.gas_sensor === SensorStatus.SENSOR_MALFUNCTION ||
-                        device.gas_sensor === SensorStatus.SENSOR_OFFLINE) {
+                    if (
+                        device.gas_sensor === SensorStatus.SENSOR_MALFUNCTION ||
+                        device.gas_sensor === SensorStatus.SENSOR_OFFLINE
+                    ) {
                         return device.gas_sensor;
                     }
                     if (device.gas_sensor === SensorStatus.SENSOR_ONLINE) {
@@ -95,7 +106,9 @@ export class Business implements IBusiness {
             }
         }
 
-        return atleastOneSensor ? SensorStatus.SENSOR_ONLINE : SensorStatus.SENSOR_NOT_USED;
+        return atleastOneSensor
+            ? SensorStatus.SENSOR_ONLINE
+            : SensorStatus.SENSOR_NOT_USED;
     }
 
     public numberOfDevices(): number {
