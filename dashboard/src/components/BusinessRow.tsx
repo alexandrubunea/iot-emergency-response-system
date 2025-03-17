@@ -3,29 +3,13 @@ import SecurityDeviceItem from "./SecurityDeviceItem";
 import ResetAlertButton from "./ResetAlertButton";
 import ResetMalfunctionButton from "./ResetMalfunctionButton";
 import ViewLogsButton from "./ViewLogsButton";
+import { Business } from "../types/Business";
 
-type Device = {
-    name: string;
-
-    // Sensor Status:
-    // -1 = disabled, 0 = offline, 1 = online, 2 = malfunction
-    motion: number;
-    sound: number;
-    fire: number;
-    gas: number;
+type BusinessRowProps = {
+    business: Business;
 }
 
-type BusinessRowType = {
-    name: string;
-    address: string;
-    lat: number;
-    lon: number;
-    devices: Array<Device>;
-    alert: boolean;
-    malfunction: boolean;
-};
-
-function BusinessRow({ name, address, lat, lon, devices, alert, malfunction }: BusinessRowType) {
+function BusinessRow({business}: BusinessRowProps) {
     const [showDetails, setShowDetails] = useState(false);
 
     const toggleDetails = () => {
@@ -38,12 +22,12 @@ function BusinessRow({ name, address, lat, lon, devices, alert, malfunction }: B
                 <div className="grid grid-cols-12">
                     <div className="col-span-10 md:col-span-11">
                         <h1 className="text-lg md:text-2xl poppins-black">
-                            {name}
+                            {business.name}
                         </h1>
                         <div className="flex flex-col poppins-light text-xs md:text-sm">
-                            <span>{address}</span>
+                            <span>{business.address}</span>
                             <span>
-                                Latitude & Longitude: {lat}, {lon}
+                                Latitude & Longitude: {business.lat}, {business.lon}
                             </span>
                         </div>
                     </div>
@@ -69,20 +53,20 @@ function BusinessRow({ name, address, lat, lon, devices, alert, malfunction }: B
                             Active security devices
                         </h3>
                         <span className="block text-xs poppins-light">
-                            Number of active devices: {devices.length}
+                            Number of active devices: {business.devices.length}
                         </span>
                         <ul className="mt-5 flex flex-col space-y-2">
-                            {devices.map((device, index) => (
-                                <SecurityDeviceItem key={index} name={device.name} motion={device.motion} sound={device.sound} fire={device.fire} gas={device.gas} />
+                            {business.devices.map((device, index) => (
+                                <SecurityDeviceItem key={index} device={device} />
                             ))}
                         </ul>
                         <div className="mt-5 flex flex-col md:flex-row gap-2 items-center">
-                            {alert && (
+                            {business.alert && (
                                 <div className="w-full md:w-fit">
                                     <ResetAlertButton />
                                 </div>
                             )}
-                            {malfunction && (
+                            {business.malfunction && (
                                 <div className="w-full md:w-fit">
                                     <ResetMalfunctionButton />
                                 </div>

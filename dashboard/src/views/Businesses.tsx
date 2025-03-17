@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import DOMPurify from "dompurify";
 import BusinessRow from "../components/BusinessRow";
+import { Business } from "../types/Business";
+import { SensorStatus } from "../types/Device";
 
 function Businesses() {
     const [isInvalidSearch, setInvalidSearch] = useState(false);
@@ -29,7 +31,7 @@ function Businesses() {
     };
 
     // Mock-up data... Will be removed.
-    const businesses = [
+    const businesses: Business[] = [
         {
             name: "The Pharma",
             lat: 45.6549781,
@@ -40,10 +42,10 @@ function Businesses() {
             devices: [
                 {
                     name: "Bathroom",
-                    motion: 1,
-                    sound: 1,
-                    fire: 1,
-                    gas: 1,
+                    motion_sensor: SensorStatus.SENSOR_ONLINE,
+                    sound_sensor: SensorStatus.SENSOR_ONLINE,
+                    fire_sensor: SensorStatus.SENSOR_ONLINE,
+                    gas_sensor: SensorStatus.SENSOR_ONLINE,
                 },
             ],
         },
@@ -57,10 +59,10 @@ function Businesses() {
             devices: [
                 {
                     name: "Bathroom",
-                    motion: 1,
-                    sound: 2,
-                    fire: -1,
-                    gas: 1,
+                    motion_sensor: SensorStatus.SENSOR_ONLINE,
+                    sound_sensor: SensorStatus.SENSOR_MALFUNCTION,
+                    fire_sensor: SensorStatus.SENSOR_NOT_USED,
+                    gas_sensor: SensorStatus.SENSOR_ONLINE,
                 },
             ],
         },
@@ -74,10 +76,10 @@ function Businesses() {
             devices: [
                 {
                     name: "Bathroom",
-                    motion: 1,
-                    sound: 1,
-                    fire: 0,
-                    gas: 2,
+                    motion_sensor: SensorStatus.SENSOR_ONLINE,
+                    sound_sensor: SensorStatus.SENSOR_ONLINE,
+                    fire_sensor: SensorStatus.SENSOR_OFFLINE,
+                    gas_sensor: SensorStatus.SENSOR_MALFUNCTION,
                 },
             ],
         },
@@ -91,10 +93,10 @@ function Businesses() {
             devices: [
                 {
                     name: "Bathroom",
-                    motion: 1,
-                    sound: 1,
-                    fire: 1,
-                    gas: 1,
+                    motion_sensor: SensorStatus.SENSOR_ONLINE,
+                    sound_sensor: SensorStatus.SENSOR_ONLINE,
+                    fire_sensor: SensorStatus.SENSOR_ONLINE,
+                    gas_sensor: SensorStatus.SENSOR_ONLINE,
                 },
             ],
         },
@@ -138,16 +140,7 @@ function Businesses() {
 
                 <div className="flex flex-col space-y-3 bg-zinc-800 rounded-lg p-3">
                     {businesses.map((business, index) => (
-                        <BusinessRow
-                            key={index}
-                            name={business.name}
-                            address={business.address}
-                            lat={business.lat}
-                            lon={business.lon}
-                            devices={business.devices}
-                            alert={business.alert}
-                            malfunction={business.malfunction}
-                        />
+                        <BusinessRow key={index} business={business}/>
                     ))}
                 </div>
             </div>

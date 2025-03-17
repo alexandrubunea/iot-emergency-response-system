@@ -1,32 +1,21 @@
-type SecurityDeviceItemProps = {
-    name: string;
+import { Device } from "../types/Device";
 
-    // Sensor Status:
-    // -1 = disabled, 0 = offline, 1 = online, 2 = malfunction
-    motion: number;
-    sound: number;
-    fire: number;
-    gas: number;
+type SecurityDeviceItemProps = {
+    device: Device;
 };
 
-function SecurityDeviceItem({
-    name,
-    motion,
-    sound,
-    fire,
-    gas,
-}: SecurityDeviceItemProps) {
+function SecurityDeviceItem({device}: SecurityDeviceItemProps) {
     const sensors = [
-        { name: "Motion Detection", value: motion, show: motion !== -1 },
-        { name: "Sound Detection", value: sound, show: sound !== -1 },
-        { name: "Gas Detection", value: gas, show: gas !== -1 },
-        { name: "Fire Detection", value: fire, show: fire !== -1 },
+        { name: "Motion Detection", value: device.motion_sensor, show: device.motion_sensor !== -1 },
+        { name: "Sound Detection", value: device.sound_sensor, show: device.sound_sensor !== -1 },
+        { name: "Gas Detection", value: device.gas_sensor, show: device.gas_sensor !== -1 },
+        { name: "Fire Detection", value: device.fire_sensor, show: device.fire_sensor !== -1 },
     ];
 
     return (
         <>
             <div className="rounded-sm bg-zinc-700 p-2 text-zinc-200">
-                <h1 className="text-md poppins-bold">{name}</h1>
+                <h1 className="text-md poppins-bold">{device.name}</h1>
                 <ul className="space-y-0 poppins-light text-sm">
                     {sensors
                         .filter((sensor) => sensor.show)
