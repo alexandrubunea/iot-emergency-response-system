@@ -1,5 +1,6 @@
 import { Device } from "../models/Device";
 import { SensorStatus } from "../types/Device";
+import { sweetAlert } from "../utils/ui";
 
 type SecurityDeviceItemProps = {
     device: Device;
@@ -13,10 +14,47 @@ function SecurityDeviceItem({ device }: SecurityDeviceItemProps) {
         { name: "Fire Detection", value: device.fire_sensor },
     ];
 
+    const showConfirmation = () => sweetAlert(
+        "Are you sure?",
+        "This action is irreversible. Once a device is removed, it must be erased before it can be reconfigured and used again.",
+        "question",
+        "Yes",
+        "No",
+        true,
+        true,
+        0,
+        deleteDevice,
+        null
+    );
+
+    const deleteDevice = () => {
+        sweetAlert(
+            "Device removed",
+            "",
+            "success",
+            "",
+            "",
+            false,
+            false,
+            2000,
+            null,
+            null
+        );
+    };
+
     return (
         <div className="rounded-sm bg-zinc-700 p-2 text-zinc-200">
-            <h1 className="text-md poppins-bold">{device.name}</h1>
-            <ul className="space-y-0 poppins-light text-sm">
+            <div className="flex justify-between">
+                <h1 className="text-md poppins-bold">{device.name}</h1>
+                <button
+                    className="p-2 rounded-sm poppins-regular text-xs bg-rose-500 hover:bg-rose-700 hover:cursor-pointer transition-colors duration-300 flex flex-row space-x-2 items-center"
+                    onClick={showConfirmation}
+                >
+                    <i className="fa-solid fa-trash-can"></i>
+                    <span className="uppercase">Remove device</span>
+                </button>
+            </div>
+            <ul className="mt-3 space-y-0 poppins-light text-sm">
                 {sensors
                     .filter(
                         (sensor) =>
