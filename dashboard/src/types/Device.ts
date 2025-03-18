@@ -6,6 +6,9 @@ export enum SensorStatus {
 }
 
 export type IDevice = {
+    id: number,
+    key: string,
+
     name: string,
 
     motion_sensor: SensorStatus;

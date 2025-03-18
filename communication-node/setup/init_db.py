@@ -1,31 +1,12 @@
 """
-Initialize the database that will be used by the communication node (API Server).
+Initialize the database that will be used by the communication node.
 """
 
 import sys
-import psycopg2
+import os
 
-# Database Configuration
-# WARNING: Do not put sensitive data in development!
-DATABASE_HOST = "127.0.0.1"
-DATABASE_NAME = "watchsec"
-DATABASE_USER = "postgres"
-DATABASE_PASSWORD = "postgres"
-
-# Check if the connection is valid
-
-try:
-    connection = psycopg2.connect(
-        host=DATABASE_HOST,
-        database=DATABASE_NAME,
-        user=DATABASE_USER,
-        password=DATABASE_PASSWORD,
-    )
-except psycopg2.Error as err:
-    print(f"Error occured while trying to connect to the database: \n\t{err}")
-    sys.exit()
-
-print("Database connection established.")
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from utils.db import connection  # noqa: E402 # pylint: disable=wrong-import-position
 
 # Open a cursor to perform operations
 cur = connection.cursor()
@@ -52,13 +33,15 @@ print("Table `employees` created with success.")
 # name: varchar(255)
 # latitude: float8
 # longitude: float8
+# address: varchar(255)
 
 cur.execute("DROP TABLE IF EXISTS businesses CASCADE;")
 cur.execute(
     "CREATE TABLE businesses (id serial PRIMARY KEY,"
     "name varchar (255) NOT NULL,"
     "latitude float8 NOT NULL,"
-    "longitude float8 NOT NULL);"
+    "longitude float8 NOT NULL,"
+    "address varchar (255) NOT NULL);"
 )
 print("Table `businesses` created with success.")
 
@@ -77,7 +60,7 @@ cur.execute("DROP TABLE IF EXISTS security_devices;")
 cur.execute(
     "CREATE TABLE security_devices (id serial PRIMARY KEY,"
     "api_key varchar (512) NOT NULL,"
-    "location varchar(255) NOT NULL,"
+    "name varchar(255) NOT NULL,"
     "motion_sensor bool NOT NULL,"
     "sound_sensor bool NOT NULL,"
     "gas_sensor bool NOT NULL,"
@@ -86,6 +69,19 @@ cur.execute(
     "CONSTRAINT fk_business FOREIGN KEY(business_id) REFERENCES businesses(id));"
 )
 print("Table `security_devices` created with success.")
+
+# Create API Keys table
+# Table structure:
+# id: int, primary key
+# key: varchar(64)
+# access_level: int (lower = more access)
+cur.execute("DROP TABLE IF EXISTS api_keys;")
+cur.execute(
+    "CREATE TABLE api_keys (id serial PRIMARY KEY,"
+    "key varchar (64) NOT NULL,"
+    "access_level int NOT NULL);"
+)
+print("Table `api_keys` created with success.")
 
 # Commit changes & close connection
 connection.commit()

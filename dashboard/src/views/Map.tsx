@@ -1,78 +1,46 @@
+import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, ZoomControl } from "react-leaflet";
 import BusinessMapPin from "../components/BusinessMapPin";
 import CarMapPin from "../components/CarMapPin";
 import { Business } from "../models/Business";
-import { Device } from "../models/Device";
-import { SensorStatus } from "../types/Device";
+import { useQuery } from "@tanstack/react-query";
+import { createBusinessesFromJson } from "../utils/createObjectsFromJson";
 
 function Map() {
-    // will be removed after api implementation
-    const businesses = [
-        new Business(
-            "The Pharma",
-            "Some Street, Number 7",
-            45.6549781,
-            25.6017911,
-            [
-                new Device(
-                    "Bathroom",
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_ONLINE
-                ),
-            ],
-            true,
-        ),
-        new Business(
-            "Some Restaurant",
-            "Some Street, Number 7",
-            45.6541784,
-            25.6145364,
-            [
-                new Device(
-                    "Bathroom",
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_MALFUNCTION,
-                    SensorStatus.SENSOR_NOT_USED,
-                    SensorStatus.SENSOR_ONLINE
-                ),
-            ],
-            false,
-        ),
-        new Business(
-            "Pizza? Ok",
-            "Some Street, Number 7",
-            45.6592795,
-            25.5984613,
-            [
-                new Device(
-                    "Bathroom",
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_OFFLINE,
-                    SensorStatus.SENSOR_MALFUNCTION
-                ),
-            ],
-            true,
-        ),
-        new Business(
-            "Hospital",
-            "Some Street, Number 7",
-            45.6482229,
-            25.6010333,
-            [
-                new Device(
-                    "Bathroom",
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_ONLINE
-                ),
-            ],
-            false,
-        ),
-    ];
+    const { isSuccess, data } = useQuery({
+        queryKey: ["businessesData"],
+        queryFn: async () => {
+            try {
+                const API_URL = import.meta.env.VITE_API_URL;
+                const response = await fetch(`${API_URL}/api/businesses`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Error ${response.status}: ${response.statusText}`
+                    );
+                }
+
+                return response.json();
+            } catch (error) {
+                console.error("Failed to fetch businesses:", error);
+                throw error;
+            }
+        },
+    });
+
+    const [businesses, setBusinesses] = useState<Business[]>([]);
+
+    useEffect(() => {
+        if (isSuccess && data) {
+            const businesses_json: Array<Business> =
+                createBusinessesFromJson(data);
+            setBusinesses(businesses_json);
+        }
+    }, [isSuccess, data]);
 
     const mockup_cars = [
         {
@@ -113,8 +81,8 @@ function Map() {
                     url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
                 />
                 <ZoomControl position="bottomright" />
-                {businesses.map((business, index) => (
-                    <BusinessMapPin key={index} business={business} />
+                {businesses.map((business) => (
+                    <BusinessMapPin key={business.key} business={business} />
                 ))}
                 {mockup_cars.map((car, index) => (
                     <CarMapPin

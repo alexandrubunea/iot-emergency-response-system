@@ -3,6 +3,9 @@ import { SensorStatus } from "../types/Device";
 import { Device } from "./Device";
 
 export class Business implements IBusiness {
+    id: number;
+    key: string;
+
     name: string;
 
     address: string;
@@ -14,6 +17,8 @@ export class Business implements IBusiness {
     alert: boolean;
 
     constructor(
+        id: number,
+        key: string,
         name: string,
         address: string,
         lat: number,
@@ -21,7 +26,11 @@ export class Business implements IBusiness {
         devices: Array<Device>,
         alert: boolean
     ) {
+        this.id = id;
+        this.key = key;
+
         this.name = name;
+
         this.address = address;
         this.lat = lat;
         this.lon = lon;

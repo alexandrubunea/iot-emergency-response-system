@@ -30,6 +30,7 @@ repos:
           - flask
           - requests
           - psycopg2
+          - dotenv
 
 -   repo: https://github.com/pocc/pre-commit-hooks
     rev: v1.3.5

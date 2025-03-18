@@ -66,9 +66,9 @@ function BusinessRow({ business }: BusinessRowProps) {
                             Number of devices: {business.devices.length}
                         </span>
                         <ul className="mt-4 flex flex-col space-y-2">
-                            {business.devices.map((device, index) => (
+                            {business.devices.map((device) => (
                                 <SecurityDeviceItem
-                                    key={index}
+                                    key={device.key}
                                     device={device}
                                 />
                             ))}

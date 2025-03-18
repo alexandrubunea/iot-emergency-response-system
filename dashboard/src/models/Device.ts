@@ -1,6 +1,9 @@
 import { IDevice, SensorStatus } from "../types/Device";
 
 export class Device implements IDevice {
+    id: number;
+    key: string;
+
     name: string;
 
     motion_sensor: SensorStatus;
@@ -9,12 +12,17 @@ export class Device implements IDevice {
     gas_sensor: SensorStatus;
 
     constructor(
+        id: number,
+        key: string,
         name: string,
         motion_sensor: SensorStatus,
         sound_sensor: SensorStatus,
         fire_sensor: SensorStatus,
         gas_sensor: SensorStatus
     ) {
+        this.id = id;
+        this.key = key;
+
         this.name = name;
 
         this.motion_sensor = motion_sensor;

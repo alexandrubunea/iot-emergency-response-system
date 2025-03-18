@@ -1,82 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DOMPurify from "dompurify";
 import BusinessRow from "../components/BusinessRow";
 import { Business } from "../models/Business";
-import { SensorStatus } from "../types/Device";
-import { Device } from "../models/Device";
+import { useQuery } from "@tanstack/react-query";
+import { createBusinessesFromJson } from "../utils/createObjectsFromJson";
 
 function Businesses() {
+    const { isPending, isError, isSuccess, data } = useQuery({
+        queryKey: ["businessesData"],
+        queryFn: async () => {
+            try {
+                const API_URL = import.meta.env.VITE_API_URL;
+                const response = await fetch(`${API_URL}/api/businesses`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Error ${response.status}: ${response.statusText}`
+                    );
+                }
+
+                return response.json();
+            } catch (error) {
+                console.error("Failed to fetch businesses:", error);
+                throw error;
+            }
+        },
+    });
+
     const [inputValue, setInputValue] = useState("");
+    const [businesses, setBusinesses] = useState<Business[]>([]);
 
-    // Mock-up data... Will be removed.
-    const businesses_json = [
-        new Business(
-            "The Pharma",
-            "Some Street, Number 7",
-            45.6549781,
-            25.6017911,
-            [
-                new Device(
-                    "Bathroom",
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_ONLINE
-                ),
-            ],
-            true
-        ),
-        new Business(
-            "Some Restaurant",
-            "Some Street, Number 7",
-            45.6541784,
-            25.6145364,
-            [
-                new Device(
-                    "Bathroom",
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_MALFUNCTION,
-                    SensorStatus.SENSOR_NOT_USED,
-                    SensorStatus.SENSOR_ONLINE
-                ),
-            ],
-            false
-        ),
-        new Business(
-            "Pizza? Ok",
-            "Some Street, Number 7",
-            45.6592795,
-            25.5984613,
-            [
-                new Device(
-                    "Bathroom",
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_OFFLINE,
-                    SensorStatus.SENSOR_MALFUNCTION
-                ),
-            ],
-            true
-        ),
-        new Business(
-            "Hospital",
-            "Some Street, Number 7",
-            45.6482229,
-            25.6010333,
-            [
-                new Device(
-                    "Bathroom",
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_ONLINE,
-                    SensorStatus.SENSOR_ONLINE
-                ),
-            ],
-            false
-        ),
-    ];
-
-    const [businesses, setBusinesses] = useState(businesses_json);
+    useEffect(() => {
+        if (isSuccess && data) {
+            const businesses_json: Array<Business> = createBusinessesFromJson(data);
+            setBusinesses(businesses_json);
+        }
+    }, [isSuccess, data]);
 
     const searchBusiness = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -84,11 +47,11 @@ function Businesses() {
         let input = DOMPurify.sanitize(inputValue);
 
         if (input === null || input.length === 0 || !/\S/.test(input)) {
-            setBusinesses(businesses_json);
+            setBusinesses(businesses);
             return;
         }
 
-        let business_filtred = businesses_json.filter((business) =>
+        let business_filtred = businesses.filter((business) =>
             business.name
                 .toLocaleLowerCase()
                 .includes(inputValue.toLocaleLowerCase())
@@ -132,9 +95,25 @@ function Businesses() {
                 </div>
 
                 <div className="flex flex-col space-y-3 bg-zinc-800 rounded-lg p-3">
-                    {businesses.map((business, index) => (
-                        <BusinessRow key={index} business={business} />
-                    ))}
+                    {isPending && (
+                        <h1 className="text-3xl poppins-black text-zinc-300 uppercase my-10">
+                            Please wait...
+                        </h1>
+                    )}
+                    {isError && (
+                        <h1 className="text-3xl poppins-black text-zinc-300 uppercase my-10">
+                            There was an error trying to fetch data.
+                        </h1>
+                    )}
+                    {isSuccess && businesses.length === 0 && (
+                        <h1 className="text-3xl poppins-black text-zinc-300 uppercase my-10">
+                            No businesses found.
+                        </h1>
+                    )}
+                    {isSuccess &&
+                        businesses.map((business) => (
+                            <BusinessRow key={business.key} business={business} />
+                        ))}
                 </div>
             </div>
         </>
