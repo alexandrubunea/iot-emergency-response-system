@@ -1,0 +1,8 @@
+[SIMILARITIES]
+min-similarity-lines=20
+ignore-comments=yes
+ignore-docstrings=yes
+ignore-imports=yes
+
+[MESSAGES CONTROL]
+disable=broad-exception-caught

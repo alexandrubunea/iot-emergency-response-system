@@ -24,14 +24,9 @@ repos:
     rev: v3.3.4
     hooks:
     -   id: pylint
+        language: system
         files: ^(communication-node|configurator)/.*\.py$
-        additional_dependencies:
-          - pytest
-          - flask
-          - requests
-          - psycopg2
-          - dotenv
-
+        types: [python]
 -   repo: https://github.com/pocc/pre-commit-hooks
     rev: v1.3.5
     hooks:

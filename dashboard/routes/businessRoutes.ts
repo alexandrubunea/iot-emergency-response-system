@@ -12,14 +12,14 @@ export async function fetchAllBusinesses(_: Request, res: Response) {
         if (API_KEY === undefined)
             throw Error("COMMUNICATION_NODE_API_KEY not defined in .env file.");
 
-        const response = await axios.get(`${API_HOST}/api/fetchAllBusinesses`, {
+        const response = await axios.get(`${API_HOST}/api/businesses`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${API_KEY}`
             }
         });
 
-        let businesses = provideUniqueIdentifier(response.data);
+        let businesses = provideUniqueIdentifier(response.data)["data"];
         businesses.forEach((business:any) => {
             business["devices"] = provideUniqueIdentifier(business["devices"])
 
