@@ -6,9 +6,11 @@ Provides API endpoints for retrieving business and device data.
 import logging
 from flask import Blueprint, jsonify, request
 import psycopg2
+from psycopg2 import sql
 
 from decorators.validate_auth import validate_auth_header
 from decorators.db_retry import retry_on_db_error
+from decorators.validate_json_payload import validate_json_payload
 from utils.db import DatabaseManager
 
 # Configure logging
@@ -63,10 +65,10 @@ def fetch_business_devices(business_id: int) -> list:
                 device_data = {
                     "id": d[0],
                     "name": d[1],
-                    "motion_sensor": d[2],
-                    "sound_sensor": d[3],
-                    "gas_sensor": d[4],
-                    "fire_sensor": d[5],
+                    "motion_sensor": 1 if d[2] else -1,
+                    "sound_sensor": 1 if d[3] else -1,
+                    "gas_sensor": 1 if d[4] else -1,
+                    "fire_sensor": 1 if d[5] else -1,
                 }
 
                 # Add additional fields if they exist in the database
@@ -161,230 +163,73 @@ def fetch_all_businesses():
         DatabaseManager.release_connection(connection)
 
 
-@dashboard_bp.route("/api/businesses/<int:business_id>", methods=["GET"])
+@dashboard_bp.route("/api/businesses", methods=["POST"])
 @validate_auth_header(required_access_level=0)
-@retry_on_db_error()
-def fetch_business(business_id):
+@validate_json_payload(
+    "name",
+    "latitude",
+    "longitude",
+    "address",
+    "contactName",
+    "contactEmail",
+    "contactPhone",
+)
+def add_business():
     """
-    Fetches details for a specific business.
+    Adds a new business to the database.
 
-    Args:
-        business_id (int): ID of the business to fetch
-
-    Returns:
-        Response: A JSON response with the business details and HTTP 200 code.
+    Return:
+        Response: A JSON response with the status of the operation.
     """
-    logger.info("Fetching business ID: %s", business_id)
+    business_data = request.json
+
+    logger.info("New business added to the database.")
 
     connection = DatabaseManager.get_connection()
 
     try:
         with connection.cursor() as cur:
             cur.execute(
-                """
-                SELECT id, name, lat, lon, address, created_at,
-                       contact_name, contact_email, contact_phone
-                FROM businesses
-                WHERE id = %s
-            """,
-                (business_id,),
+                sql.SQL(
+                    """
+                        INSERT INTO businesses(
+                            name, lat, lon, address, contact_name, contact_email, contact_phone
+                        ) VALUES(%s, %s, %s, %s, %s, %s, %s) RETURNING id
+                        """
+                ),
+                (
+                    business_data["name"],
+                    business_data["latitude"],
+                    business_data["longitude"],
+                    business_data["address"],
+                    business_data.get("contactName", ""),
+                    business_data.get("contactEmail", ""),
+                    business_data.get("contactPhone", ""),
+                ),
             )
-            business = cur.fetchone()
 
-            if not business:
-                logger.warning("Business ID %s not found", business_id)
-                return (
-                    jsonify(
-                        {
-                            "status": "error",
-                            "message": f"Business with ID {business_id} not found",
-                        }
-                    ),
-                    404,
-                )
+            business_id = cur.fetchone()[0]
+            connection.commit()
 
-            result = {
-                "id": business[0],
-                "name": business[1],
-                "lat": business[2],
-                "lon": business[3],
-                "address": business[4],
-            }
-
-            # Add additional fields if they exist in the database
-            if len(business) > 5:
-                result["created_at"] = business[5].isoformat() if business[5] else None
-            if len(business) > 6:
-                result["contact_name"] = business[6]
-            if len(business) > 7:
-                result["contact_email"] = business[7]
-            if len(business) > 8:
-                result["contact_phone"] = business[8]
-
-            # Include devices for this business
-            result["devices"] = fetch_business_devices(business_id)
-            result["device_count"] = len(result["devices"])
-
-            logger.info("Successfully fetched business ID %s", business_id)
-
-            return jsonify({"status": "success", "data": result}), 200
-    except psycopg2.Error as e:
-        logger.error("Database error fetching business %s: %s", business_id, e)
-
-        return (
-            jsonify(
-                {
-                    "status": "error",
-                    "message": f"Error fetching business with ID {business_id}",
-                }
-            ),
-            500,
-        )
-    finally:
-        DatabaseManager.release_connection(connection)
-
-
-@dashboard_bp.route("/api/businesses/<int:business_id>/devices", methods=["GET"])
-@validate_auth_header(required_access_level=0)
-@retry_on_db_error()
-def fetch_business_devices_route(business_id):
-    """
-    Fetches all devices for a specific business.
-
-    Args:
-        business_id (int): ID of the business
-
-    Returns:
-        Response: A JSON response with the devices and HTTP 200 code.
-    """
-    logger.info("Fetching devices for business ID: %s", business_id)
-
-    connection = DatabaseManager.get_connection()
-
-    try:
-        # First check if the business exists
-        with connection.cursor() as cur:
-            cur.execute("SELECT id FROM businesses WHERE id = %s", (business_id,))
-            if cur.fetchone() is None:
-                logger.warning("Business ID %s not found", business_id)
-                return (
-                    jsonify(
-                        {
-                            "status": "error",
-                            "message": f"Business with ID {business_id} not found",
-                        }
-                    ),
-                    404,
-                )
-
-        # Fetch devices for this business
-        devices = fetch_business_devices(business_id)
-
-        logger.info(
-            "Successfully fetched %s devices for business ID %s",
-            len(devices),
-            business_id,
-        )
-
-        return (
-            jsonify({"status": "success", "data": devices, "count": len(devices)}),
-            200,
-        )
-    except psycopg2.Error as e:
-        logger.error(
-            "Database error fetching devices for business %s: %s", business_id, e
-        )
-
-        return (
-            jsonify(
-                {
-                    "status": "error",
-                    "message": f"Error fetching devices for business with ID {business_id}",
-                }
-            ),
-            500,
-        )
-    finally:
-        DatabaseManager.release_connection(connection)
-
-
-@dashboard_bp.route("/api/devices/<int:device_id>", methods=["GET"])
-@validate_auth_header(required_access_level=0)
-@retry_on_db_error()
-def fetch_device(device_id):
-    """
-    Fetches details for a specific device.
-
-    Args:
-        device_id (int): ID of the device to fetch
-
-    Returns:
-        Response: A JSON response with the device details and HTTP 200 code.
-    """
-    logger.info("Fetching device ID: %s", device_id)
-
-    connection = DatabaseManager.get_connection()
-
-    try:
-        with connection.cursor() as cur:
-            cur.execute(
-                """
-                SELECT id, name, motion_sensor, sound_sensor, gas_sensor, fire_sensor,
-                       business_id, created_at, last_active_at, status
-                FROM security_devices
-                WHERE id = %s
-            """,
-                (device_id,),
+            logger.info("Business registered successfully with ID: %s", business_id)
+            return (
+                jsonify(
+                    {
+                        "status": "success",
+                        "message": "Business registered successfully",
+                    }
+                ),
+                200,
             )
-            device = cur.fetchone()
-
-            if not device:
-                logger.warning("Device ID %s not found", device_id)
-                return (
-                    jsonify(
-                        {
-                            "status": "error",
-                            "message": f"Device with ID {device_id} not found",
-                        }
-                    ),
-                    404,
-                )
-
-            result = {
-                "id": device[0],
-                "name": device[1],
-                "motion_sensor": device[2],
-                "sound_sensor": device[3],
-                "gas_sensor": device[4],
-                "fire_sensor": device[5],
-                "business_id": device[6],
-            }
-
-            if len(device) > 7:
-                result["created_at"] = device[7].isoformat() if device[7] else None
-            if len(device) > 8:
-                result["last_active_at"] = device[8].isoformat() if device[8] else None
-            if len(device) > 9:
-                result["status"] = device[9]
-
-            # Fetch business info for this device
-            with connection.cursor() as cur:
-                cur.execute("SELECT name FROM businesses WHERE id = %s", (device[6],))
-                business = cur.fetchone()
-                if business:
-                    result["business_name"] = business[0]
-
-            logger.info("Successfully fetched device ID %s", device_id)
-
-            return jsonify({"status": "success", "data": result}), 200
     except psycopg2.Error as e:
-        logger.error("Database error fetching device %s: %s", device_id, e)
+        logger.error("Database error during business registration: %s", e)
 
+        connection.rollback()
         return (
             jsonify(
                 {
                     "status": "error",
-                    "message": f"Error fetching device with ID {device_id}",
+                    "message": "Database error during business registration",
                 }
             ),
             500,

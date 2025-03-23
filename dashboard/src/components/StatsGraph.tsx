@@ -233,7 +233,7 @@ function StatsGraph() {
                             key={range}
                             onClick={() => setSelectedRange(range as TimeRange)}
                             className={`
-                                p-2 md:p-3 rounded-md hover:bg-zinc-950 hover:cursor-pointer w-full md:w-36
+                                p-2 md:p-3 rounded-md hover:bg-zinc-900 active:bg-zinc-950 hover:cursor-pointer w-full md:w-36
                                 text-center transition-colors duration-300 text-sm md:text-base
                                 ${
                                     range === selectedRange

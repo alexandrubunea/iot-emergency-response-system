@@ -31,7 +31,10 @@ export function createBusinessesFromJson(data:any[]): Array<Business> {
             business["lat"],
             business["lon"],
             createDevicesFromJson(business["devices"]),
-            business["alert"]
+            business["alert"],
+            business["contact_name"],
+            business["contact_phone"],
+            business["contact_email"]
         ));
     });
 

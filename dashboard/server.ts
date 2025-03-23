@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 
 import { fileURLToPath } from "url";
-import { fetchAllBusinesses } from "./routes/businessRoutes.js";
+import { fetchAllBusinesses, addNewBusiness } from "./routes/businessRoutes.js";
 
 dotenv.config();
 
@@ -22,6 +22,7 @@ app.use(cors());
 
 // GET ROUTES
 app.get("/api/businesses", fetchAllBusinesses);
+app.post("/api/businesses", addNewBusiness);
 
 app.get("*", (_: Request, res: Response) => {
     res.sendFile(path.join(__dirname, "dist", "index.html"));

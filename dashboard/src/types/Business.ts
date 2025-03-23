@@ -10,6 +10,10 @@ export type IBusiness = {
     lat: number,
     lon: number,
 
+    contactName: string | null,
+    contactPhone: string | null,
+    contactEmail: string | null,
+
     devices: Array<Device>,
 
     alert: boolean,

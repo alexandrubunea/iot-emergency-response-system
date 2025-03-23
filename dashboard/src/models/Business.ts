@@ -12,6 +12,10 @@ export class Business implements IBusiness {
     lat: number;
     lon: number;
 
+    contactName: string | null;
+    contactEmail: string | null;
+    contactPhone: string | null;
+
     devices: Array<Device>;
 
     alert: boolean;
@@ -24,7 +28,10 @@ export class Business implements IBusiness {
         lat: number,
         lon: number,
         devices: Array<Device>,
-        alert: boolean
+        alert: boolean,
+        contactName: string | null,
+        contactPhone: string | null,
+        contactEmail: string | null
     ) {
         this.id = id;
         this.key = key;
@@ -36,6 +43,10 @@ export class Business implements IBusiness {
         this.lon = lon;
         this.devices = devices;
         this.alert = alert;
+
+        this.contactEmail = contactEmail;
+        this.contactName = contactName;
+        this.contactPhone = contactPhone;
     }
 
     public anyBrokenDevice(): boolean {
