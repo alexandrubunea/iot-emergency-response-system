@@ -63,3 +63,30 @@ export async function addNewBusiness(req: Request, res: Response) {
         });
     }
 }
+
+export async function deleteBusiness(req: Request, res: Response) {
+    const API_KEY = process.env.COMMUNICATION_NODE_API_KEY;
+    const API_HOST = process.env.COMMUNICATION_NODE_HOST;
+
+    try {
+        if (API_HOST === undefined)
+            throw Error("COMMUNICATION_NODE_HOST not defined in .env file.");
+        if (API_KEY === undefined)
+            throw Error("COMMUNICATION_NODE_API_KEY not defined in .env file.");
+
+        const response = await axios.delete(`${API_HOST}/api/businesses/${req.params.id}`, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${API_KEY}`,
+            },
+        });
+
+        res.json(response.data);
+    } catch (error) {
+        console.log(error);
+
+        res.status(500).json({
+            message: "Failed to delete data.",
+        });
+    }
+}

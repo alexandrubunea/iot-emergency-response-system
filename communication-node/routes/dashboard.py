@@ -236,3 +236,83 @@ def add_business():
         )
     finally:
         DatabaseManager.release_connection(connection)
+
+
+@dashboard_bp.route("/api/businesses/<int:business_id>", methods=["DELETE"])
+@validate_auth_header(required_access_level=0)
+def delete_business(business_id: int):
+    """
+    Deletes a business from the database.
+
+    Args:
+        business_id (int): The ID of the business to delete.
+
+    Returns:
+        Response: A JSON response with the status of the operation.
+    """
+    logger.info("Deleting business with ID: %s", business_id)
+
+    connection = DatabaseManager.get_connection()
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                sql.SQL("DELETE FROM businesses WHERE id = %s"),
+                (business_id,),
+            )
+
+            connection.commit()
+
+            logger.info("Business deleted successfully")
+            return jsonify({"status": "success", "message": "Business deleted"}), 200
+
+    except psycopg2.Error as e:
+        logger.error("Database error deleting business: %s", e)
+
+        connection.rollback()
+        return (
+            jsonify({"status": "error", "message": "Error deleting business"}),
+            500,
+        )
+    finally:
+        DatabaseManager.release_connection(connection)
+
+
+@dashboard_bp.route("/api/devices/<int:device_id>", methods=["DELETE"])
+@validate_auth_header(required_access_level=0)
+def delete_device(device_id: int):
+    """
+    Deletes a device from the database.
+
+    Args:
+        device_id (int): The ID of the device to delete.
+
+    Returns:
+        Response: A JSON response with the status of the operation.
+    """
+    logger.info("Deleting device with ID: %s", device_id)
+
+    connection = DatabaseManager.get_connection()
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                sql.SQL("DELETE FROM security_devices WHERE id = %s"),
+                (device_id,),
+            )
+
+            connection.commit()
+
+            logger.info("Device deleted successfully")
+            return jsonify({"status": "success", "message": "Device deleted"}), 200
+
+    except psycopg2.Error as e:
+        logger.error("Database error deleting device: %s", e)
+
+        connection.rollback()
+        return (
+            jsonify({"status": "error", "message": "Error deleting device"}),
+            500,
+        )
+    finally:
+        DatabaseManager.release_connection(connection)

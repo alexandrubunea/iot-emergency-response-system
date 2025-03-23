@@ -254,39 +254,3 @@ def business_exists(business_id):
         )
     finally:
         DatabaseManager.release_connection(connection)
-
-
-@configurator_bp.route("/health", methods=["GET"])
-def health_check():
-    """
-    Health check endpoint to verify the service is running.
-
-    Returns:
-        Response: A JSON response with status
-    """
-
-    connection = DatabaseManager.get_connection()
-
-    try:
-        # Test database connection
-        with connection.cursor() as cur:
-            cur.execute("SELECT 1")
-            cur.fetchone()
-
-        return (
-            jsonify({"status": "healthy", "message": "Service is running correctly"}),
-            200,
-        )
-    except psycopg2.Error as e:
-        logger.error("Health check failed - database connection error: %s", e)
-
-        return (
-            jsonify({"status": "unhealthy", "message": "Database connection error"}),
-            500,
-        )
-    except Exception as e:
-        logger.error("Health check failed - unexpected error: %s", e)
-
-        return jsonify({"status": "unhealthy", "message": "Unexpected error"}), 500
-    finally:
-        DatabaseManager.release_connection(connection)

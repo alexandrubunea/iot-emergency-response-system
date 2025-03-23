@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import DOMPurify from "dompurify";
+import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import BusinessRow from "../components/BusinessRow";
 import { Business } from "../models/Business";
 import { createBusinessesFromJson } from "../utils/createObjectsFromJson";
+import { sweetAlert } from "../utils/ui";
 
 type BusinesesListProps = {
-    toggleFunction: () => void
-}
+    toggleFunction: () => void;
+};
 
-function BusinesesList({toggleFunction}: BusinesesListProps) {
+function BusinesesList({ toggleFunction }: BusinesesListProps) {
     const API_URL = import.meta.env.VITE_API_URL;
 
     const { isPending, isError, isSuccess, data } = useQuery({
@@ -70,6 +72,49 @@ function BusinesesList({toggleFunction}: BusinesesListProps) {
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setInputValue(event.target.value);
+    };
+
+    const onRemoveBusiness = (id: number) => {
+        axios
+            .delete(`${API_URL}/api/businesses/${id}`)
+            .then((res) => {
+                if (res.status !== 200) {
+                    throw new Error("Error removing business");
+                }
+
+                const newBusinesses = businesses.filter(
+                    (business) => business.id !== id
+                );
+                setBusinesses(newBusinesses);
+                businesses_full.current = newBusinesses;
+
+                sweetAlert(
+                    "Business removed",
+                    "",
+                    "success",
+                    "",
+                    "",
+                    false,
+                    false,
+                    2000,
+                    null,
+                    null
+                );
+            })
+            .catch(() => {
+                sweetAlert(
+                    "Error",
+                    "There was an error removing the business.",
+                    "error",
+                    "",
+                    "",
+                    false,
+                    false,
+                    2000,
+                    null,
+                    null
+                );
+            });
     };
     return (
         <>
@@ -164,6 +209,9 @@ function BusinesesList({toggleFunction}: BusinesesListProps) {
                                 <BusinessRow
                                     key={business.key}
                                     business={business}
+                                    onRemove={() =>
+                                        onRemoveBusiness(business.id)
+                                    }
                                 />
                             ))}
                         </div>

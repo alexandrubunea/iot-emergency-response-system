@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
 import SecurityDeviceItem from "./SecurityDeviceItem";
 import ResetAlertButton from "./ResetAlertButton";
 import ResetMalfunctionButton from "./ResetMalfunctionButton";
 import ViewLogsButton from "./ViewLogsButton";
 import { Business } from "../models/Business";
+import { Device } from "../models/Device";
 import BusinessRowTitle from "./BusinessRowTitle";
 import { sweetAlert } from "../utils/ui";
 import DeleteButton from "./DeleteButton";
@@ -16,6 +18,11 @@ type BusinessRowProps = {
 
 function BusinessRow({ business, onRemove }: BusinessRowProps) {
     const [showDetails, setShowDetails] = useState(false);
+    const [devices, setDevices] = useState<Device[]>([]);
+
+    useEffect(() => {
+        setDevices(business.devices);
+    }, [business.devices]);
 
     const toggleDetails = () => {
         setShowDetails(!showDetails);
@@ -34,25 +41,52 @@ function BusinessRow({ business, onRemove }: BusinessRowProps) {
             true,
             0,
             () => {
-                deleteBusiness();
                 if (onRemove) onRemove(business.id);
             },
             null
         );
 
-    const deleteBusiness = () => {
-        sweetAlert(
-            "Business removed",
-            "",
-            "success",
-            "",
-            "",
-            false,
-            false,
-            2000,
-            null,
-            null
-        );
+    const onRemoveDevice = (deviceId: number) => {
+        const API_URL = import.meta.env.VITE_API_URL;
+        axios
+            .delete(`${API_URL}/api/devices/${deviceId}`)
+            .then((res) => {
+                if (res.status !== 200) {
+                    throw new Error("Error removing device");
+                }
+
+                const updatedDevices = devices.filter(
+                    (device) => device.id !== deviceId
+                );
+                setDevices(updatedDevices);
+
+                sweetAlert(
+                    "Device removed",
+                    "",
+                    "success",
+                    "",
+                    "",
+                    false,
+                    false,
+                    2000,
+                    null,
+                    null
+                );
+            })
+            .catch(() => {
+                sweetAlert(
+                    "Error",
+                    "An error occurred while trying to remove the device. Please try again later.",
+                    "error",
+                    "",
+                    "",
+                    false,
+                    false,
+                    2000,
+                    null,
+                    null
+                );
+            });
     };
 
     return (
@@ -158,14 +192,17 @@ function BusinessRow({ business, onRemove }: BusinessRowProps) {
                                     <i className="fa-solid fa-shield-halved mr-2 text-green-400"></i>
                                     Active security devices
                                     <span className="ml-2 text-xs bg-zinc-800 px-2 py-1 rounded-full">
-                                        {business.devices.length}
+                                        {devices.length}
                                     </span>
                                 </h3>
                                 <ul className="mt-2 flex flex-col space-y-2">
-                                    {business.devices.map((device) => (
+                                    {devices.map((device) => (
                                         <SecurityDeviceItem
                                             key={device.key}
                                             device={device}
+                                            onRemove={() =>
+                                                onRemoveDevice(device.id)
+                                            }
                                         />
                                     ))}
                                 </ul>
@@ -176,7 +213,10 @@ function BusinessRow({ business, onRemove }: BusinessRowProps) {
                             {business.alert && <ResetAlertButton />}
                             {malfunction && <ResetMalfunctionButton />}
                             <ViewLogsButton />
-                            <DeleteButton text="Delete Business" showConfirmation={showConfirmation} />
+                            <DeleteButton
+                                text="Delete Business"
+                                showConfirmation={showConfirmation}
+                            />
                         </div>
                     </motion.div>
                 )}

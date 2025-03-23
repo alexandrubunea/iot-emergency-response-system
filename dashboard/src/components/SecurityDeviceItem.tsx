@@ -9,6 +9,7 @@ type SecurityDeviceItemProps = {
 };
 
 function SecurityDeviceItem({ device, onRemove }: SecurityDeviceItemProps) {
+
     const sensors = [
         {
             name: "Motion Detection",
@@ -77,26 +78,10 @@ function SecurityDeviceItem({ device, onRemove }: SecurityDeviceItemProps) {
             true,
             0,
             () => {
-                deleteDevice();
                 if (onRemove) onRemove(device.id);
             },
             null
         );
-
-    const deleteDevice = () => {
-        sweetAlert(
-            "Device removed",
-            "",
-            "success",
-            "",
-            "",
-            false,
-            false,
-            2000,
-            null,
-            null
-        );
-    };
 
     const getSensorStatusIcon = (status: SensorStatus) => {
         switch (status) {
@@ -207,7 +192,10 @@ function SecurityDeviceItem({ device, onRemove }: SecurityDeviceItemProps) {
             </div>
 
             <div className="p-3">
-                <DeleteButton text="Remove" showConfirmation={showConfirmation} />
+                <DeleteButton
+                    text="Remove"
+                    showConfirmation={showConfirmation}
+                />
             </div>
         </div>
     );
