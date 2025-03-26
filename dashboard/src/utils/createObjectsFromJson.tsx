@@ -1,5 +1,6 @@
 import { Business } from "../models/Business";
 import { Device } from "../models/Device";
+import { Employee } from "../types/Employee";
 
 export function createDevicesFromJson(data:any[]): Array<Device> {
     let result: Array<Device> = [];
@@ -36,6 +37,25 @@ export function createBusinessesFromJson(data:any[]): Array<Business> {
             business["contact_phone"],
             business["contact_email"]
         ));
+    });
+
+    return result;
+}
+
+export function createEmployeesFromJson(data: any[]): Array<Employee> {
+    let result: Array<Employee> = [];
+
+    data.forEach(employee => {
+        let employeeObj = {
+            id: employee["id"],
+            first_name: employee["first_name"],
+            last_name: employee["last_name"],
+            phone: employee["phone"],
+            email: employee["email"],
+            api_key: employee["api_key"],
+            created_at: employee["created_at"]
+        }
+        result.push(employeeObj);
     });
 
     return result;

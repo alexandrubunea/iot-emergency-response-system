@@ -39,7 +39,7 @@ def create_tables():
 
         # Create API Keys table
         logger.info("Creating api_keys table...")
-        cur.execute("DROP TABLE IF EXISTS api_keys;")
+        cur.execute("DROP TABLE IF EXISTS api_keys CASCADE;")
         cur.execute(
             """
             CREATE TABLE api_keys (
@@ -57,7 +57,7 @@ def create_tables():
 
         # Create employees table
         logger.info("Creating employees table...")
-        cur.execute("DROP TABLE IF EXISTS employees;")
+        cur.execute("DROP TABLE IF EXISTS employees CASCADE;")
         cur.execute(
             """
             CREATE TABLE employees (
@@ -98,7 +98,7 @@ def create_tables():
 
         # Create security devices table
         logger.info("Creating security_devices table...")
-        cur.execute("DROP TABLE IF EXISTS security_devices;")
+        cur.execute("DROP TABLE IF EXISTS security_devices CASCADE;")
         cur.execute(
             """
             CREATE TABLE security_devices (
@@ -123,6 +123,27 @@ def create_tables():
         """
         )
         logger.info("Table `security_devices` created successfully.")
+
+        # Create employees table
+        logger.info("Creating employees table...")
+        cur.execute("DROP TABLE IF EXISTS employees CASCADE;")
+        cur.execute(
+            """
+            CREATE TABLE employees (
+                id SERIAL PRIMARY KEY,
+                first_name VARCHAR(255) NOT NULL,
+                last_name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                phone VARCHAR(50),
+                api_key_id INTEGER NOT NULL,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                CONSTRAINT fk_api_key FOREIGN KEY(api_key_id) REFERENCES api_keys(id)
+                ON DELETE CASCADE
+            );
+            CREATE INDEX idx_employees_api_key ON employees(api_key_id);
+        """
+        )
+        logger.info("Table `employees` created successfully.")
 
         # Commit all changes
         connection.commit()

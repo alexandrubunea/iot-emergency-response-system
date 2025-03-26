@@ -22,7 +22,7 @@ static void gas_sensor_event(void* pvParameters) {
 }
 
 esp_err_t init_gas_sensor() {
-	Sensor* gas_sensor = init_sensor(34, false, 100);
+	Sensor* gas_sensor = init_sensor(34, false, 500);
 
 	if (gas_sensor == NULL) {
 		ESP_LOGE(TAG, "Failed to allocate memory for the sensor.");

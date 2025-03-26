@@ -22,7 +22,7 @@ static void sound_sensor_event(void* pvParameters) {
 }
 
 esp_err_t init_sound_sensor() {
-	Sensor* sound_sensor = init_sensor(14, true, -1);
+	Sensor* sound_sensor = init_sensor(27, true, -1);
 
 	if (sound_sensor == NULL) {
 		ESP_LOGE(TAG, "Failed to allocate memory for the sensor.");

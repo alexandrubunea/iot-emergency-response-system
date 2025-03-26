@@ -3,7 +3,9 @@ Handles communication between the database and the dashboard.
 Provides API endpoints for retrieving business and device data.
 """
 
+import hashlib
 import logging
+import uuid
 from flask import Blueprint, jsonify, request
 import psycopg2
 from psycopg2 import sql
@@ -314,5 +316,182 @@ def delete_device(device_id: int):
             jsonify({"status": "error", "message": "Error deleting device"}),
             500,
         )
+    finally:
+        DatabaseManager.release_connection(connection)
+
+
+@dashboard_bp.route("/api/employees", methods=["POST"])
+@validate_auth_header(required_access_level=0)
+@validate_json_payload(
+    "first_name",
+    "last_name",
+)
+def add_employee():
+    """
+    Adds a new employee to the database.
+
+    Return:
+        Response: A JSON response with the status of the operation.
+    """
+
+    logger.info("New employee added to the database.")
+
+    connection = DatabaseManager.get_connection()
+
+    api_key = hashlib.sha256(str(uuid.uuid4()).encode()).hexdigest()[:64]
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO api_keys(api_key, access_level, description)
+                VALUES(%s, 1, %s) RETURNING id
+                """,
+                (
+                    api_key,
+                    f"""API Key used by employee {request.json['first_name']}
+                    {request.json['last_name']}""",
+                ),
+            )
+            api_key_id = cur.fetchone()[0]
+            connection.commit()
+
+            cur.execute(
+                sql.SQL(
+                    """
+                        INSERT INTO employees(
+                            first_name, last_name, email, phone, api_key_id
+                        ) VALUES(%s, %s, %s, %s, %s) RETURNING id
+                        """
+                ),
+                (
+                    request.json["first_name"],
+                    request.json["last_name"],
+                    request.json["email"],
+                    request.json["phone"],
+                    api_key_id,
+                ),
+            )
+
+            employee_id = cur.fetchone()[0]
+            connection.commit()
+
+            logger.info("Employee registered successfully with ID: %s", employee_id)
+            return (
+                jsonify(
+                    {
+                        "status": "success",
+                        "message": "Employee registered successfully",
+                    }
+                ),
+                200,
+            )
+    except psycopg2.Error as e:
+        logger.error("Database error during employee registration: %s", e)
+
+        connection.rollback()
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": "Database error during employee registration",
+                }
+            ),
+            500,
+        )
+    finally:
+        DatabaseManager.release_connection(connection)
+
+
+@dashboard_bp.route("/api/employees/<int:employee_id>", methods=["DELETE"])
+@validate_auth_header(required_access_level=0)
+def delete_employee(employee_id: int):
+    """
+    Deletes an employee from the database.
+
+    Args:
+        employee_id (int): The ID of the employee to delete.
+
+    Returns:
+        Response: A JSON response with the status of the operation.
+    """
+    logger.info("Deleting employee with ID: %s", employee_id)
+
+    connection = DatabaseManager.get_connection()
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                sql.SQL("DELETE FROM employees WHERE id = %s"),
+                (employee_id,),
+            )
+
+            connection.commit()
+
+            logger.info("Employee deleted successfully")
+            return jsonify({"status": "success", "message": "Employee deleted"}), 200
+
+    except psycopg2.Error as e:
+        logger.error("Database error deleting employee: %s", e)
+
+        connection.rollback()
+        return (
+            jsonify({"status": "error", "message": "Error deleting employee"}),
+            500,
+        )
+    finally:
+        DatabaseManager.release_connection(connection)
+
+
+@dashboard_bp.route("/api/employees", methods=["GET"])
+@validate_auth_header(required_access_level=0)
+@retry_on_db_error()
+def fetch_all_employees():
+    """
+    Fetches all the employees from the database.
+
+    Returns:
+        Response: A JSON response with the employees and HTTP 200 code.
+    """
+    logger.info("Fetching all employees")
+
+    connection = DatabaseManager.get_connection()
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                """
+                SELECT e.id, e.first_name, e.last_name, a.api_key, e.email, e.phone, e.created_at
+                FROM employees e
+                JOIN api_keys a ON e.api_key_id = a.id
+                ORDER BY e.first_name ASC
+                """
+            )
+            employees = cur.fetchall()
+
+        result = []
+        for e in employees:
+            employee_data = {
+                "id": e[0],
+                "first_name": e[1],
+                "last_name": e[2],
+                "api_key": e[3][:8] + "..." + e[3][-8:],
+                "email": e[4],
+                "phone": e[5],
+            }
+
+            if len(e) > 3:
+                employee_data["created_at"] = e[6].isoformat() if e[6] else None
+
+            result.append(employee_data)
+
+        logger.info("Successfully fetched %s employees", len(result))
+
+        return jsonify({"status": "success", "data": result, "count": len(result)}), 200
+
+    except psycopg2.Error as e:
+        logger.error("Database error fetching employees: %s", e)
+
+        return jsonify({"status": "error", "message": "Error fetching employees"}), 500
     finally:
         DatabaseManager.release_connection(connection)

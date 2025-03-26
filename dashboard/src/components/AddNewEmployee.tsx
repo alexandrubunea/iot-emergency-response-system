@@ -2,32 +2,27 @@ import { useState } from "react";
 import DOMPurify from "dompurify";
 import { sweetAlert } from "../utils/ui";
 
-type AddNewBusinessProps = {
+type AddNewEmployeeProps = {
     toggleFunction: () => void;
     setToggleState: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-function AddNewBusiness({
+function AddNewEmployee({
     toggleFunction,
     setToggleState,
-}: AddNewBusinessProps) {
+}: AddNewEmployeeProps) {
     const [formData, setFormData] = useState({
-        businessName: "",
-        latitude: "",
-        longitude: "",
-        address: "",
-        contactName: "",
-        contactPhone: "",
-        contactEmail: "",
+        first_name: "",
+        last_name: "",
+        phone: "",
+        email: "",
     });
 
     const [formErrors, setFormErrors] = useState({
-        businessName: "",
-        latitude: "",
-        longitude: "",
-        address: "",
-        contactPhone: "",
-        contactEmail: "",
+        first_name: "",
+        last_name: "",
+        phone: "",
+        email: "",
     });
 
     const handleFormChange = (
@@ -51,55 +46,38 @@ function AddNewBusiness({
         let valid = true;
         const newErrors = { ...formErrors };
 
-        if (!formData.businessName.trim()) {
-            newErrors.businessName = "Business name is required";
+        if (!formData.first_name.trim()) {
+            newErrors.first_name = "First name is required";
             valid = false;
         }
 
-        if (!formData.latitude.trim()) {
-            newErrors.latitude = "Latitude is required";
-            valid = false;
-        } else if (
-            isNaN(Number(formData.latitude)) ||
-            Number(formData.latitude) < -90 ||
-            Number(formData.latitude) > 90
-        ) {
-            newErrors.latitude = "Must be a valid latitude (-90 to 90)";
+        if (!formData.last_name.trim()) {
+            newErrors.last_name = "Last name is required";
             valid = false;
         }
 
-        if (!formData.longitude.trim()) {
-            newErrors.longitude = "Longitude is required";
-            valid = false;
-        } else if (
-            isNaN(Number(formData.longitude)) ||
-            Number(formData.longitude) < -180 ||
-            Number(formData.longitude) > 180
-        ) {
-            newErrors.longitude = "Must be a valid longitude (-180 to 180)";
+        if (!formData.email.trim()) {
+            newErrors.email = "Email is required";
             valid = false;
         }
 
-        if (!formData.address.trim()) {
-            newErrors.address = "Address is required";
+        if (!formData.phone.trim()) {
+            newErrors.phone = "Phone number is required";
             valid = false;
         }
 
         if (
-            formData.contactPhone &&
+            formData.phone &&
             !/^(\+\d{1,3}[- ]?)?\(?\d{3}\)?[- ]?\d{3}[- ]?\d{4}/.test(
-                formData.contactPhone
+                formData.phone
             )
         ) {
-            newErrors.contactPhone = "Invalid phone number format";
+            newErrors.phone = "Invalid phone number format";
             valid = false;
         }
 
-        if (
-            formData.contactEmail &&
-            !/^\S+@\S+\.\S+$/.test(formData.contactEmail)
-        ) {
-            newErrors.contactEmail = "Invalid email format";
+        if (formData.email && !/^\S+@\S+\.\S+$/.test(formData.email)) {
+            newErrors.email = "Invalid email format";
             valid = false;
         }
 
@@ -117,16 +95,13 @@ function AddNewBusiness({
         try {
             const API_URL = import.meta.env.VITE_API_URL;
             const sanitizedData = {
-                name: DOMPurify.sanitize(formData.businessName),
-                latitude: parseFloat(formData.latitude),
-                longitude: parseFloat(formData.longitude),
-                address: DOMPurify.sanitize(formData.address),
-                contactName: DOMPurify.sanitize(formData.contactName),
-                contactPhone: DOMPurify.sanitize(formData.contactPhone),
-                contactEmail: DOMPurify.sanitize(formData.contactEmail),
+                first_name: DOMPurify.sanitize(formData.first_name),
+                last_name: DOMPurify.sanitize(formData.last_name),
+                phone: DOMPurify.sanitize(formData.phone),
+                email: DOMPurify.sanitize(formData.email),
             };
 
-            const response = await fetch(`${API_URL}/api/businesses`, {
+            const response = await fetch(`${API_URL}/api/employees`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -136,23 +111,20 @@ function AddNewBusiness({
 
             if (!response.ok) {
                 throw new Error(
-                    `Error ${response.status}: ${response.statusText}`
+                    `Error: ${response.status} - ${response.statusText}`
                 );
             }
 
             setFormData({
-                businessName: "",
-                latitude: "",
-                longitude: "",
-                address: "",
-                contactName: "",
-                contactPhone: "",
-                contactEmail: "",
+                first_name: "",
+                last_name: "",
+                phone: "",
+                email: "",
             });
             setToggleState(false);
 
             sweetAlert(
-                "Business profile created successfully!",
+                "Employee added successfully",
                 "",
                 "success",
                 "",
@@ -164,7 +136,7 @@ function AddNewBusiness({
                 null
             );
         } catch (error) {
-            console.error("Failed to add business:", error);
+            console.error("Failed to add employee:", error);
 
             sweetAlert(
                 "Something went wrong!",
@@ -186,171 +158,117 @@ function AddNewBusiness({
             <div className="max-w-4xl mx-auto p-6 space-y-6">
                 <div className="rounded-lg bg-zinc-800 text-zinc-200 p-5 shadow-md">
                     <div className="flex items-center mb-3">
-                        <h2 className="text-2xl domine-bold">Add Business</h2>
+                        <h2 className="text-2xl domine-bold">
+                            Add New Employee
+                        </h2>
                     </div>
                     <hr className="my-5 border-zinc-600"></hr>
 
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="mb-4">
                             <h3 className="text-xl mb-4 domine-bold text-emerald-400">
-                                Business Information
+                                Personal Information
                             </h3>
-
-                            <div className="mb-4">
-                                <label className="block text-zinc-300 mb-1 poppins-bold">
-                                    Business Name{" "}
-                                    <span className="text-pink-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="businessName"
-                                    value={formData.businessName}
-                                    onChange={handleFormChange}
-                                    className={`w-full bg-zinc-700 text-zinc-200 rounded-md p-3 border ${
-                                        formErrors.businessName
-                                            ? "border-red-500"
-                                            : "border-zinc-600"
-                                    } focus:ring-0 focus:outline-0 poppins-light`}
-                                    placeholder="Enter business name"
-                                />
-                                {formErrors.businessName && (
-                                    <p className="text-red-500 text-sm mt-1">
-                                        {formErrors.businessName}
-                                    </p>
-                                )}
-                            </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <div>
                                     <label className="block text-zinc-300 mb-1 poppins-bold">
-                                        Latitude{" "}
+                                        First Name{" "}
                                         <span className="text-pink-500">*</span>
                                     </label>
                                     <input
                                         type="text"
-                                        name="latitude"
-                                        value={formData.latitude}
+                                        name="first_name"
+                                        value={formData.first_name}
                                         onChange={handleFormChange}
                                         className={`w-full bg-zinc-700 text-zinc-200 rounded-md p-3 border ${
-                                            formErrors.latitude
+                                            formErrors.first_name
                                                 ? "border-red-500"
                                                 : "border-zinc-600"
                                         } focus:ring-0 focus:outline-0 poppins-light`}
-                                        placeholder="e.g. 44.63255"
+                                        placeholder="Enter first name"
                                     />
-                                    {formErrors.latitude && (
+                                    {formErrors.first_name && (
                                         <p className="text-red-500 text-sm mt-1">
-                                            {formErrors.latitude}
+                                            {formErrors.first_name}
                                         </p>
                                     )}
                                 </div>
                                 <div>
                                     <label className="block text-zinc-300 mb-1 poppins-bold">
-                                        Longitude{" "}
+                                        Last Name{" "}
                                         <span className="text-pink-500">*</span>
                                     </label>
                                     <input
                                         type="text"
-                                        name="longitude"
-                                        value={formData.longitude}
+                                        name="last_name"
+                                        value={formData.last_name}
                                         onChange={handleFormChange}
                                         className={`w-full bg-zinc-700 text-zinc-200 rounded-md p-3 border ${
-                                            formErrors.longitude
+                                            formErrors.last_name
                                                 ? "border-red-500"
                                                 : "border-zinc-600"
                                         } focus:ring-0 focus:outline-0 poppins-light`}
-                                        placeholder="e.g. 22.6556833"
+                                        placeholder="Enter last name"
                                     />
-                                    {formErrors.longitude && (
+                                    {formErrors.last_name && (
                                         <p className="text-red-500 text-sm mt-1">
-                                            {formErrors.longitude}
+                                            {formErrors.last_name}
                                         </p>
                                     )}
                                 </div>
-                            </div>
-
-                            <div className="mb-4">
-                                <label className="block text-zinc-300 mb-1 poppins-bold">
-                                    Business Address{" "}
-                                    <span className="text-pink-500">*</span>
-                                </label>
-                                <textarea
-                                    name="address"
-                                    value={formData.address}
-                                    onChange={handleFormChange}
-                                    className={`w-full bg-zinc-700 text-zinc-200 rounded-md p-3 border ${
-                                        formErrors.address
-                                            ? "border-red-500"
-                                            : "border-zinc-600"
-                                    } focus:ring-0 focus:outline-0 poppins-light`}
-                                    placeholder="Enter full address"
-                                    rows={3}
-                                />
-                                {formErrors.address && (
-                                    <p className="text-red-500 text-sm mt-1">
-                                        {formErrors.address}
-                                    </p>
-                                )}
                             </div>
                         </div>
 
                         <div className="mb-4">
                             <h3 className="text-xl mb-4 domine-bold text-emerald-400">
-                                Contact Information (Optional)
+                                Contact Information
                             </h3>
-
-                            <div className="mb-4">
-                                <label className="block text-zinc-300 mb-1 poppins-bold">
-                                    Contact Name
-                                </label>
-                                <input
-                                    type="text"
-                                    name="contactName"
-                                    value={formData.contactName}
-                                    onChange={handleFormChange}
-                                    className="w-full bg-zinc-700 text-zinc-200 rounded-md p-3 border border-zinc-600 focus:ring-0 focus:outline-0 poppins-light"
-                                    placeholder="Enter contact person's name"
-                                />
-                            </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-zinc-300 mb-1 poppins-bold">
-                                        Contact Phone
+                                        Phone Number{" "}
+                                        <span className="text-pink-500">*</span>
                                     </label>
                                     <input
-                                        type="tel"
-                                        name="contactPhone"
-                                        value={formData.contactPhone}
+                                        type="text"
+                                        name="phone"
+                                        value={formData.phone}
                                         onChange={handleFormChange}
-                                        className="w-full bg-zinc-700 text-zinc-200 rounded-md p-3 border border-zinc-600 focus:ring-0 focus:outline-0 poppins-light"
+                                        className={`w-full bg-zinc-700 text-zinc-200 rounded-md p-3 border ${
+                                            formErrors.phone
+                                                ? "border-red-500"
+                                                : "border-zinc-600"
+                                        } focus:ring-0 focus:outline-0 poppins-light`}
                                         placeholder="Enter phone number"
                                     />
-                                    {formErrors.contactPhone && (
+                                    {formErrors.phone && (
                                         <p className="text-red-500 text-sm mt-1">
-                                            {formErrors.contactPhone}
+                                            {formErrors.phone}
                                         </p>
                                     )}
                                 </div>
                                 <div>
                                     <label className="block text-zinc-300 mb-1 poppins-bold">
-                                        Contact Email
+                                        Email Address{" "}
+                                        <span className="text-pink-500">*</span>
                                     </label>
                                     <input
                                         type="text"
-                                        name="contactEmail"
-                                        value={formData.contactEmail}
+                                        name="email"
+                                        value={formData.email}
                                         onChange={handleFormChange}
                                         className={`w-full bg-zinc-700 text-zinc-200 rounded-md p-3 border ${
-                                            formErrors.contactEmail
+                                            formErrors.email
                                                 ? "border-red-500"
                                                 : "border-zinc-600"
                                         } focus:ring-0 focus:outline-0 poppins-light`}
                                         placeholder="Enter email address"
                                     />
-                                    {formErrors.contactEmail && (
+                                    {formErrors.email && (
                                         <p className="text-red-500 text-sm mt-1">
-                                            {formErrors.contactEmail}
+                                            {formErrors.email}
                                         </p>
                                     )}
                                 </div>
@@ -370,7 +288,7 @@ function AddNewBusiness({
                                 className="px-6 py-3 rounded-md poppins-bold uppercase bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 transition-colors duration-300 whitespace-nowrap hover:cursor-pointer flex items-center justify-center"
                             >
                                 <i className="fa-solid fa-floppy-disk mr-2"></i>
-                                <span>Save Business</span>
+                                <span>Save Employee</span>
                             </button>
                         </div>
                     </form>
@@ -380,4 +298,4 @@ function AddNewBusiness({
     );
 }
 
-export default AddNewBusiness;
+export default AddNewEmployee;

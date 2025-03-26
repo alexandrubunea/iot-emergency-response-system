@@ -1,24 +1,24 @@
-import React, { useState, useEffect, useRef } from "react";
 import DOMPurify from "dompurify";
 import axios from "axios";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import BusinessRow from "../components/BusinessRow";
-import { Business } from "../models/Business";
-import { createBusinessesFromJson } from "../utils/createObjectsFromJson";
+import { Employee } from "../types/Employee";
+import { createEmployeesFromJson } from "../utils/createObjectsFromJson";
 import { sweetAlert } from "../utils/ui";
+import EmployeeRow from "./EmployeeRow";
 
-type BusinesesListProps = {
+type EmployeesListProps = {
     toggleFunction: () => void;
 };
 
-function BusinesesList({ toggleFunction }: BusinesesListProps) {
+function EmployeesList({ toggleFunction }: EmployeesListProps) {
     const API_URL = import.meta.env.VITE_API_URL;
 
     const { isPending, isError, isSuccess, data } = useQuery({
-        queryKey: ["businessesData"],
+        queryKey: ["employeesData"],
         queryFn: async () => {
             try {
-                const response = await fetch(`${API_URL}/api/businesses`, {
+                const response = await fetch(`${API_URL}/api/employees`, {
                     headers: {
                         "Content-Type": "application/json",
                     },
@@ -32,64 +32,71 @@ function BusinesesList({ toggleFunction }: BusinesesListProps) {
 
                 return response.json();
             } catch (error) {
-                console.error("Failed to fetch businesses:", error);
+                console.error("Failed to fetch employees:", error);
                 throw error;
             }
         },
     });
 
     const [inputValue, setInputValue] = useState("");
-    const [businesses, setBusinesses] = useState<Business[]>([]);
-    const businesses_full = useRef<Business[]>([]);
+    const [employees, setEmployees] = useState<Employee[]>([]);
+    const employees_full = useRef<Employee[]>([]);
 
     useEffect(() => {
         if (isSuccess && data) {
-            const businesses_json: Array<Business> =
-                createBusinessesFromJson(data);
-            setBusinesses(businesses_json);
-            businesses_full.current = businesses_json;
+            const employees_json: Array<Employee> =
+                createEmployeesFromJson(data);
+            setEmployees(employees_json);
+            employees_full.current = employees_json;
         }
     }, [isSuccess, data]);
 
-    const searchBusiness = (event: React.FormEvent<HTMLFormElement>) => {
+    const searchEmployee = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         let input = DOMPurify.sanitize(inputValue);
 
         if (input === null || input.length === 0 || !/\S/.test(input)) {
-            setBusinesses(businesses_full.current);
+            setEmployees(employees_full.current);
             return;
         }
 
-        let business_filtred = businesses.filter((business) =>
-            business.name
-                .toLocaleLowerCase()
-                .includes(inputValue.toLocaleLowerCase())
-        );
+        let filteredEmployees = employees_full.current.filter((employee) => {
+            return (
+                employee.first_name
+                    .toLowerCase()
+                    .includes(input.toLowerCase()) ||
+                employee.last_name
+                    .toLowerCase()
+                    .includes(input.toLowerCase()) ||
+                employee.email.toLowerCase().includes(input.toLowerCase()) ||
+                employee.phone.toLowerCase().includes(input.toLowerCase())
+            );
+        });
 
-        setBusinesses(business_filtred);
+        setEmployees(filteredEmployees);
     };
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setInputValue(event.target.value);
     };
 
-    const onRemoveBusiness = (id: number) => {
+    const onRemoveEmployee = (id: number) => {
         axios
-            .delete(`${API_URL}/api/businesses/${id}`)
+            .delete(`${API_URL}/api/employees/${id}`)
             .then((res) => {
                 if (res.status !== 200) {
-                    throw new Error("Error removing business");
+                    throw new Error("Error removing employee");
                 }
 
-                const newBusinesses = businesses.filter(
-                    (business) => business.id !== id
+                const newEmployees = employees.filter(
+                    (employee) => employee.id !== id
                 );
-                setBusinesses(newBusinesses);
-                businesses_full.current = newBusinesses;
+                setEmployees(newEmployees);
+                employees_full.current = newEmployees;
 
                 sweetAlert(
-                    "Business removed",
+                    "Employee removed",
                     "",
                     "success",
                     "",
@@ -104,7 +111,7 @@ function BusinesesList({ toggleFunction }: BusinesesListProps) {
             .catch(() => {
                 sweetAlert(
                     "Error",
-                    "There was an error removing the business.",
+                    "There was an error removing the employee.",
                     "error",
                     "",
                     "",
@@ -116,25 +123,26 @@ function BusinesesList({ toggleFunction }: BusinesesListProps) {
                 );
             });
     };
+
     return (
         <>
-            <div className="max-w-4xl mx-auto p-6 space-y-6">
+            <div className="max-w-4xl mx-auto p-6 space-y-6 text-zinc-200">
                 <div className="rounded-lg bg-zinc-800 text-zinc-200 p-5 shadow-md">
-                    <div className="flex items-center mb-3">
+                    <h2 className="flex items-center mb-3">
                         <h2 className="text-2xl domine-bold">
-                            Search Business
+                            Search Employee
                         </h2>
-                    </div>
+                    </h2>
                     <form
                         method="POST"
-                        onSubmit={searchBusiness}
+                        onSubmit={searchEmployee}
                         className="flex flex-col sm:flex-row gap-3"
                     >
                         <input
                             className="flex-grow bg-zinc-700 text-zinc-200 rounded-md text-lg p-3 border border-zinc-600 focus:ring-0 focus:outline-0 placeholder-zinc-400 poppins-light"
                             value={inputValue}
                             onChange={handleInputChange}
-                            placeholder="Business Name..."
+                            placeholder="Search by Name, Email or Phone"
                         />
                         <button
                             type="submit"
@@ -145,10 +153,11 @@ function BusinesesList({ toggleFunction }: BusinesesListProps) {
                         </button>
                     </form>
                 </div>
+
                 <div className="rounded-lg bg-zinc-800 text-zinc-200 p-5 shadow-md">
                     <div className="flex items-center mb-3">
                         <h2 className="text-2xl domine-bold">
-                            A new customer?
+                            A new employee?
                         </h2>
                     </div>
                     <button
@@ -157,64 +166,62 @@ function BusinesesList({ toggleFunction }: BusinesesListProps) {
                         className="flex items-center space-x-2 px-4 py-3 rounded-md poppins-bold uppercase bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 transition-colors duration-300 hover:cursor-pointer"
                     >
                         <i className="fa-solid fa-square-plus"></i>
-                        <span>Add business profile</span>
+                        <span>Add a new employee</span>
                     </button>
                 </div>
+
                 <div className="rounded-lg bg-zinc-800 text-zinc-200 p-5 shadow-md min-h-40">
                     {isPending && (
-                        <div className="flex justify-center items-center h-40">
-                            <div className="flex flex-col items-center">
-                                <div className="animate-spin rounded-full h-10 w-10 border-4 border-pink-500 border-t-transparent mb-3"></div>
-                                <h2 className="text-xl poppins-bold text-zinc-300">
-                                    Loading Businesses...
-                                </h2>
-                            </div>
+                        <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12">
+                            <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-500 border-t-transparent"></div>
+                            <h3 className="text-2xl poppins-bold text-zinc-300">
+                                Loading Employees...
+                            </h3>
                         </div>
                     )}
 
                     {isError && (
-                        <div className="flex justify-center items-center h-40">
-                            <div className="flex flex-col items-center text-center">
-                                <i className="fa-solid fa-triangle-exclamation text-3xl text-red-500 mb-3"></i>
-                                <h2 className="text-xl poppins-bold text-zinc-300">
-                                    There was an error fetching data.
-                                </h2>
-                                <p className="text-zinc-400 mt-2 poppins-light">
-                                    We encountered an issue retrieving business
-                                    data. Please try again later or contact
-                                    support.
-                                </p>
-                            </div>
+                        <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12">
+                            <i className="fa-solid fa-triangle-exclamation text-5xl text-red-500 mb-4"></i>
+                            <h3 className="text-2xl poppins-bold text-zinc-300">
+                                Error Fetching Employees
+                            </h3>
+                            <p className="text-zinc-400 text-base max-w-md">
+                                We encountered an issue retrieving employee
+                                data. Please try again later or contact support.
+                            </p>
                         </div>
                     )}
 
-                    {isSuccess && businesses.length === 0 && (
-                        <div className="flex justify-center items-center h-40">
-                            <div className="flex flex-col items-center text-center">
-                                <i className="fa-solid fa-face-frown text-3xl text-zinc-500 mb-3"></i>
-                                <h2 className="text-xl poppins-bold text-zinc-300">
-                                    No businesses found.
-                                </h2>
-                                <p className="text-zinc-400 mt-2 poppins-light">
-                                    Your search did not match any business. Try
-                                    adjusting your search terms or adding a new
-                                    employee.
-                                </p>
-                            </div>
+                    {isSuccess && employees.length === 0 && (
+                        <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12">
+                            <i className="fa-solid fa-face-frown text-5xl text-zinc-500 mb-4"></i>
+                            <h3 className="text-2xl poppins-bold text-zinc-300">
+                                No employees found
+                            </h3>
+                            <p className="text-zinc-400 text-base max-w-md">
+                                Your search did not match any employees. Try
+                                adjusting your search terms or adding a new
+                                employee.
+                            </p>
                         </div>
                     )}
 
-                    {isSuccess && businesses.length > 0 && (
+                    {isSuccess && employees.length > 0 && (
                         <div className="space-y-3">
                             <h2 className="text-xl domine-bold mb-4">
                                 Search Results
                             </h2>
-                            {businesses.map((business) => (
-                                <BusinessRow
-                                    key={business.key}
-                                    business={business}
+                            {employees.map((employee) => (
+                                <EmployeeRow
+                                    key={
+                                        employee.id +
+                                        employee.last_name +
+                                        employee.first_name
+                                    }
+                                    employee={employee}
                                     onRemove={() =>
-                                        onRemoveBusiness(business.id)
+                                        onRemoveEmployee(employee.id)
                                     }
                                 />
                             ))}
@@ -226,4 +233,4 @@ function BusinesesList({ toggleFunction }: BusinesesListProps) {
     );
 }
 
-export default BusinesesList;
+export default EmployeesList;
