@@ -7,6 +7,9 @@ import Businesses from "./views/Businesses";
 import Employees from "./views/Employees";
 import Logs from "./views/Logs";
 import Settings from "./views/Settings";
+import Alerts from "./views/Logs/Alerts";
+import Malfunctions from "./views/Logs/Malfunctions";
+import Other from "./views/Logs/Other";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +35,12 @@ function App() {
                 return <Logs />;
             case "Settings":
                 return <Settings />;
+            case "Logs/Alerts":
+                return <Alerts />;
+            case "Logs/Malfunctions":
+                return <Malfunctions />;
+            case "Logs/Other":
+                return <Other />;
             default:
                 return <Home />;
         }
