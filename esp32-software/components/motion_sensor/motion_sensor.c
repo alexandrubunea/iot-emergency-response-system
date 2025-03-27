@@ -21,8 +21,9 @@ static void motion_sensor_event(void* pvParameters) {
 	}
 }
 
-esp_err_t init_motion_sensor() {
-	Sensor* motion_sensor = init_sensor(13, true, -1);
+esp_err_t init_motion_sensor(int gpio, bool is_digital, int treshold, int times_to_trigger,
+							 config_t* device_cfg) {
+	Sensor* motion_sensor = init_sensor(gpio, is_digital, treshold, times_to_trigger, device_cfg);
 
 	if (motion_sensor == NULL) {
 		ESP_LOGE(TAG, "Failed to allocate memory for the sensor.");

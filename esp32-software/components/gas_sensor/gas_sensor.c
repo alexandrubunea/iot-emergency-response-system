@@ -21,8 +21,9 @@ static void gas_sensor_event(void* pvParameters) {
 	}
 }
 
-esp_err_t init_gas_sensor() {
-	Sensor* gas_sensor = init_sensor(34, false, 500);
+esp_err_t init_gas_sensor(int gpio, bool is_digital, int treshold, int times_to_trigger,
+						  config_t* device_cfg) {
+	Sensor* gas_sensor = init_sensor(gpio, is_digital, treshold, times_to_trigger, device_cfg);
 
 	if (gas_sensor == NULL) {
 		ESP_LOGE(TAG, "Failed to allocate memory for the sensor.");

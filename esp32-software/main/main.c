@@ -37,22 +37,22 @@ void app_main(void) {
 
 	if (boot_sequence(&device_cfg) != ESP_OK) return;
 
-	if (init_motion_sensor() != ESP_OK) {
+	if (init_motion_sensor(13, true, -1, 0, device_cfg) != ESP_OK) {
 		ESP_LOGE("app_main", "Failed to initialize motion sensor. Turning off.");
 		return;
 	}
 
-	if (init_sound_sensor() != ESP_OK) {
+	if (init_sound_sensor(27, true, -1, 0, device_cfg) != ESP_OK) {
 		ESP_LOGE("app_main", "Failed to initialize sound sensor. Turning off.");
 		return;
 	}
 
-	if (init_fire_sensor() != ESP_OK) {
+	if (init_fire_sensor(35, false, 3500, 3, device_cfg) != ESP_OK) {
 		ESP_LOGE("app_main", "Failed to initialize fire sensor. Turning off.");
 		return;
 	}
 
-	if (init_gas_sensor() != ESP_OK) {
+	if (init_gas_sensor(34, false, 500, 0, device_cfg) != ESP_OK) {
 		ESP_LOGE("app_main", "Failed to initialize gas sensor. Turning off.");
 		return;
 	}

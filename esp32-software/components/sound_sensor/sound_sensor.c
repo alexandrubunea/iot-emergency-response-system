@@ -21,8 +21,9 @@ static void sound_sensor_event(void* pvParameters) {
 	}
 }
 
-esp_err_t init_sound_sensor() {
-	Sensor* sound_sensor = init_sensor(27, true, -1);
+esp_err_t init_sound_sensor(int gpio, bool is_digital, int treshold, int times_to_trigger,
+							config_t* device_cfg) {
+	Sensor* sound_sensor = init_sensor(gpio, is_digital, treshold, times_to_trigger, device_cfg);
 
 	if (sound_sensor == NULL) {
 		ESP_LOGE(TAG, "Failed to allocate memory for the sensor.");

@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "config_storage.h"
 #include "driver/gpio.h"
 #include "esp_adc/adc_oneshot.h"
 
@@ -11,6 +12,10 @@ typedef struct sensor {
 	gpio_num_t gpio;
 	bool is_digital;
 	int treshold;
+	int times_triggered;
+	int times_to_trigger;
+
+	config_t* device_cfg;
 
 	adc_channel_t adc_channel;
 } Sensor;
@@ -23,9 +28,13 @@ typedef struct sensor {
  * @param gpio GPIO pin number associated with the sensor.
  * @param is_digital Boolean flag indicating whether the sensor is digital or analog.
  * @param treshold Threshold value for analog sensor (unused for digital sensors).
+ * @param times_to_trigger Number of times the sensor must trigger before the signal is considered
+ * valid.
+ * @param device_cfg Pointer to the device configuration structure.
  * @return Pointer to the initialized Sensor structure, or NULL on failure.
  */
-Sensor* init_sensor(gpio_num_t gpio, bool is_digital, int treshold);
+Sensor* init_sensor(gpio_num_t gpio, bool is_digital, int treshold, int times_to_trigger,
+					config_t* device_cfg);
 
 /**
  * @brief Reads the signal from the sensor.
