@@ -63,7 +63,7 @@ function BusinessRowTitle({ text, alert, malfunction }: BusinessRowTitleProps) {
                     <i className="fa-solid fa-circle-check text-lg text-emerald-400"></i>
                 )}
 
-                <span className="truncate">{text}</span>
+                <span className="break-after-auto">{text}</span>
 
                 {(alert || malfunction) && (
                     <span
