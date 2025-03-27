@@ -9,12 +9,14 @@ import psycopg2
 
 from routes.configurator import configurator_bp
 from routes.dashboard import dashboard_bp
+from routes.device import device_bp
 from utils.db import DatabaseManager
 
 app = Flask(__name__)
 
 app.register_blueprint(configurator_bp)
 app.register_blueprint(dashboard_bp)
+app.register_blueprint(device_bp)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -45,4 +47,4 @@ if __name__ == "__main__":
     finally:
         DatabaseManager.close_all_connections()
 
-    app.run()
+    app.run(host="0.0.0.0")

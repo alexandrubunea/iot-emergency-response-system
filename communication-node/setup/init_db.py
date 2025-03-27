@@ -145,6 +145,60 @@ def create_tables():
         )
         logger.info("Table `employees` created successfully.")
 
+        # Create alerts table
+        logger.info("Creating alerts table...")
+        cur.execute("DROP TABLE IF EXISTS alerts CASCADE;")
+        cur.execute(
+            """
+            CREATE TABLE alerts (
+                id SERIAL PRIMARY KEY,
+                device_id INTEGER NOT NULL,
+                alert_type VARCHAR(50) NOT NULL,
+                alert_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                resolved BOOLEAN DEFAULT FALSE,
+                CONSTRAINT fk_device FOREIGN KEY(device_id) REFERENCES security_devices(id)
+                ON DELETE CASCADE
+            );
+            CREATE INDEX idx_alerts_device ON alerts(device_id);
+        """
+        )
+        logger.info("Table `alerts` created successfully.")
+
+        # Create malfunctions table
+        logger.info("Creating malfunctions table...")
+        cur.execute("DROP TABLE IF EXISTS malfunctions CASCADE;")
+        cur.execute(
+            """
+            CREATE TABLE malfunctions (
+                id SERIAL PRIMARY KEY,
+                device_id INTEGER NOT NULL,
+                malfunction_type VARCHAR(50) NOT NULL,
+                malfunction_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                resolved BOOLEAN DEFAULT FALSE,
+                CONSTRAINT fk_device FOREIGN KEY(device_id) REFERENCES security_devices(id)
+                ON DELETE CASCADE
+            );
+            CREATE INDEX idx_malfunctions_device ON malfunctions(device_id);
+        """
+        )
+
+        # Device logs table
+        logger.info("Creating device_logs table...")
+        cur.execute("DROP TABLE IF EXISTS device_logs CASCADE;")
+        cur.execute(
+            """
+            CREATE TABLE device_logs (
+                id SERIAL PRIMARY KEY,
+                device_id INTEGER NOT NULL,
+                log_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                log_type VARCHAR(50) NOT NULL,
+                CONSTRAINT fk_device FOREIGN KEY(device_id) REFERENCES security_devices(id)
+                ON DELETE CASCADE
+            );
+            CREATE INDEX idx_device_logs_device ON device_logs(device_id);
+        """
+        )
+
         # Commit all changes
         connection.commit()
         logger.info("All tables created successfully.")

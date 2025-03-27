@@ -495,3 +495,369 @@ def fetch_all_employees():
         return jsonify({"status": "error", "message": "Error fetching employees"}), 500
     finally:
         DatabaseManager.release_connection(connection)
+
+
+@dashboard_bp.route("/api/alerts", methods=["GET"])
+@validate_auth_header(required_access_level=0)
+@retry_on_db_error()
+def fetch_all_alerts():
+    """
+    Fetches all the alerts from the database.
+
+    Returns:
+        Response: A JSON response with the alerts and HTTP 200 code.
+    """
+    logger.info("Fetching all alerts")
+
+    connection = DatabaseManager.get_connection()
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    a.id,
+                    a.device_id,
+                    a.alert_type,
+                    a.alert_time,
+                    a.resolved,
+                    sd.name AS device_name,
+                    b.name AS business_name
+                FROM
+                    alert a
+                JOIN
+                    security_devices sd ON a.device_id = sd.id
+                JOIN
+                    businesses b ON sd.business_id = b.id
+                ORDER BY
+                    a.alert_time DESC
+                """
+            )
+            alerts = cur.fetchall()
+
+        result = []
+        for a in alerts:
+            alert_data = {
+                "id": a[0],
+                "device_id": a[1],
+                "alert_type": a[2],
+                "alert_time": a[3].isoformat() if a[3] else None,
+                "resolved": a[4],
+                "device_name": a[5],
+                "business_name": a[6],
+            }
+
+            result.append(alert_data)
+
+        logger.info("Successfully fetched %s alerts", len(result))
+
+        return jsonify({"status": "success", "data": result, "count": len(result)}), 200
+
+    except psycopg2.Error as e:
+        logger.error("Database error fetching alerts: %s", e)
+
+        return jsonify({"status": "error", "message": "Error fetching alerts"}), 500
+    finally:
+        DatabaseManager.release_connection(connection)
+
+
+@dashboard_bp.route("/api/malfunctions", methods=["GET"])
+@validate_auth_header(required_access_level=0)
+@retry_on_db_error()
+def fetch_all_malfunctions():
+    """
+    Fetches all the malfunctions from the database.
+
+    Returns:
+        Response: A JSON response with the malfunctions and HTTP 200 code.
+    """
+    logger.info("Fetching all malfunctions")
+
+    connection = DatabaseManager.get_connection()
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    m.id,
+                    m.device_id,
+                    m.malfunction_type,
+                    m.malfunction_time,
+                    m.resolved,
+                    sd.name AS device_name,
+                    b.name AS business_name
+                FROM
+                    malfunctions m
+                JOIN
+                    security_devices sd ON m.device_id = sd.id
+                JOIN
+                    businesses b ON sd.business_id = b.id
+                ORDER BY
+                    m.malfunction_time DESC
+                """
+            )
+            malfunctions = cur.fetchall()
+
+        result = []
+        for m in malfunctions:
+            malfunction_data = {
+                "id": m[0],
+                "device_id": m[1],
+                "malfunction_type": m[2],
+                "malfunction_time": m[3].isoformat() if m[3] else None,
+                "resolved": m[4],
+                "device_name": m[5],
+                "business_name": m[6],
+            }
+
+            result.append(malfunction_data)
+
+        logger.info("Successfully fetched %s malfunctions", len(result))
+
+        return jsonify({"status": "success", "data": result, "count": len(result)}), 200
+
+    except psycopg2.Error as e:
+        logger.error("Database error fetching malfunctions: %s", e)
+
+        return (
+            jsonify({"status": "error", "message": "Error fetching malfunctions"}),
+            500,
+        )
+    finally:
+        DatabaseManager.release_connection(connection)
+
+
+@dashboard_bp.route("/api/device_logs", methods=["GET"])
+@validate_auth_header(required_access_level=0)
+@retry_on_db_error()
+def fetch_all_device_logs():
+    """
+    Fetches all the device logs from the database.
+
+    Returns:
+        Response: A JSON response with the device logs and HTTP 200 code.
+    """
+    logger.info("Fetching all device logs")
+
+    connection = DatabaseManager.get_connection()
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    dl.id,
+                    dl.device_id,
+                    dl.log_time,
+                    dl.log_type,
+                    sd.name AS device_name,
+                    b.name AS business_name
+                FROM
+                    device_logs dl
+                JOIN
+                    security_devices sd ON dl.device_id = sd.id
+                JOIN
+                    businesses b ON sd.business_id = b.id
+                ORDER BY
+                    dl.log_time DESC
+                """
+            )
+            device_logs = cur.fetchall()
+
+        result = []
+        for dl in device_logs:
+            device_log_data = {
+                "id": dl[0],
+                "device_id": dl[1],
+                "log_time": dl[2].isoformat() if dl[2] else None,
+                "log_type": dl[3],
+                "device_name": dl[4],
+                "business_name": dl[5],
+            }
+
+            result.append(device_log_data)
+
+        logger.info("Successfully fetched %s device logs", len(result))
+
+        return jsonify({"status": "success", "data": result, "count": len(result)}), 200
+
+    except psycopg2.Error as e:
+        logger.error("Database error fetching device logs: %s", e)
+
+        return (
+            jsonify({"status": "error", "message": "Error fetching device logs"}),
+            500,
+        )
+    finally:
+        DatabaseManager.release_connection(connection)
+
+
+@dashboard_bp.route("/api/solve_alert/<int:alert_id>", methods=["POST"])
+@validate_auth_header(required_access_level=0)
+def solve_alert(alert_id: int):
+    """
+    Marks an alert as resolved in the database.
+
+    Args:
+        alert_id (int): The ID of the alert to mark as resolved.
+
+    Returns:
+        Response: A JSON response with the status of the operation.
+    """
+    logger.info("Solving alert with ID: %s", alert_id)
+
+    connection = DatabaseManager.get_connection()
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                sql.SQL("UPDATE alerts SET resolved = TRUE WHERE id = %s"),
+                (alert_id,),
+            )
+
+            connection.commit()
+
+            logger.info("Alert solved successfully")
+            return jsonify({"status": "success", "message": "Alert solved"}), 200
+
+    except psycopg2.Error as e:
+        logger.error("Database error solving alert: %s", e)
+
+        connection.rollback()
+        return (
+            jsonify({"status": "error", "message": "Error solving alert"}),
+            500,
+        )
+    finally:
+        DatabaseManager.release_connection(connection)
+
+
+@dashboard_bp.route("/api/solve_malfunction/<int:malfunction_id>", methods=["POST"])
+@validate_auth_header(required_access_level=0)
+def solve_malfunction(malfunction_id: int):
+    """
+    Marks a malfunction as resolved in the database.
+
+    Args:
+        malfunction_id (int): The ID of the malfunction to mark as resolved.
+
+    Returns:
+        Response: A JSON response with the status of the operation.
+    """
+    logger.info("Solving malfunction with ID: %s", malfunction_id)
+
+    connection = DatabaseManager.get_connection()
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                sql.SQL("UPDATE malfunctions SET resolved = TRUE WHERE id = %s"),
+                (malfunction_id,),
+            )
+
+            connection.commit()
+
+            logger.info("Malfunction solved successfully")
+            return jsonify({"status": "success", "message": "Malfunction solved"}), 200
+
+    except psycopg2.Error as e:
+        logger.error("Database error solving malfunction: %s", e)
+
+        connection.rollback()
+        return (
+            jsonify({"status": "error", "message": "Error solving malfunction"}),
+            500,
+        )
+    finally:
+        DatabaseManager.release_connection(connection)
+
+
+@dashboard_bp.route("/api/solve_business_alerts/<int:business_id>", methods=["POST"])
+@validate_auth_header(required_access_level=0)
+def solve_business_alerts(business_id: int):
+    """
+    Marks all unresolved alerts for a business as resolved in the database.
+
+    Args:
+        business_id (int): The ID of the business to mark alerts as resolved.
+
+    Returns:
+        Response: A JSON response with the status of the operation.
+    """
+    logger.info("Solving all alerts for business with ID: %s", business_id)
+
+    connection = DatabaseManager.get_connection()
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                sql.SQL(
+                    "UPDATE alerts SET resolved = TRUE WHERE device_id "
+                    "IN (SELECT id FROM security_devices "
+                    "WHERE business_id = %s)"
+                ),
+                (business_id,),
+            )
+
+            connection.commit()
+
+            logger.info("Alerts solved successfully")
+            return jsonify({"status": "success", "message": "Alerts solved"}), 200
+
+    except psycopg2.Error as e:
+        logger.error("Database error solving alerts: %s", e)
+
+        connection.rollback()
+        return (
+            jsonify({"status": "error", "message": "Error solving alerts"}),
+            500,
+        )
+    finally:
+        DatabaseManager.release_connection(connection)
+
+
+@dashboard_bp.route(
+    "/api/solve_business_malfunctions/<int:business_id>", methods=["POST"]
+)
+@validate_auth_header(required_access_level=0)
+def solve_business_malfunctions(business_id: int):
+    """
+    Marks all unresolved malfunctions for a business as resolved in the database.
+
+    Args:
+        business_id (int): The ID of the business to mark malfunctions as resolved.
+
+    Returns:
+        Response: A JSON response with the status of the operation.
+    """
+    logger.info("Solving all malfunctions for business with ID: %s", business_id)
+
+    connection = DatabaseManager.get_connection()
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                sql.SQL(
+                    "UPDATE malfunctions SET resolved = TRUE"
+                    " WHERE device_id IN (SELECT id FROM security_devices"
+                    " WHERE business_id = %s)"
+                ),
+                (business_id,),
+            )
+
+            connection.commit()
+
+            logger.info("Malfunctions solved successfully")
+            return jsonify({"status": "success", "message": "Malfunctions solved"}), 200
+
+    except psycopg2.Error as e:
+        logger.error("Database error solving malfunctions: %s", e)
+
+        connection.rollback()
+        return (
+            jsonify({"status": "error", "message": "Error solving malfunctions"}),
+            500,
+        )
+    finally:
+        DatabaseManager.release_connection(connection)
