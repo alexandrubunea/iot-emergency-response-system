@@ -5,11 +5,10 @@ import Home from "./views/Home";
 import Map from "./views/Map";
 import Businesses from "./views/Businesses";
 import Employees from "./views/Employees";
-import Logs from "./views/Logs";
 import Settings from "./views/Settings";
-import Alerts from "./views/Logs/Alerts";
-import Malfunctions from "./views/Logs/Malfunctions";
-import Other from "./views/Logs/Other";
+import Alerts from "./views/LogsView/Alerts";
+import Malfunctions from "./views/LogsView/Malfunctions";
+import Other from "./views/LogsView/Other";
 
 const queryClient = new QueryClient();
 
@@ -31,8 +30,6 @@ function App() {
                 return <Businesses />;
             case "Employees":
                 return <Employees />;
-            case "Logs":
-                return <Logs />;
             case "Settings":
                 return <Settings />;
             case "Logs/Alerts":
