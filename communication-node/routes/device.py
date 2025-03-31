@@ -78,7 +78,8 @@ def send_alert():
                     """
                     INSERT INTO alerts(
                         device_id,
-                        alert_type) VALUES (%s, %s) RETURNING id;
+                        alert_type,
+                        message) VALUES (%s, %s, %s) RETURNING id;
                     """
                 ),
                 (
@@ -86,6 +87,7 @@ def send_alert():
                         request.headers["Authorization"].split(" ")[1]
                     ),
                     alert_data["alert_type"],
+                    alert_data["message"] if alert_data.get("message") else None,
                 ),
             )
 
@@ -133,7 +135,8 @@ def send_malfunction():
                     """
                     INSERT INTO malfunctions(
                         device_id,
-                        malfunction_type) VALUES (%s, %s) RETURNING id;
+                        malfunction_type,
+                        message) VALUES (%s, %s, %s) RETURNING id;
                     """
                 ),
                 (
@@ -141,6 +144,11 @@ def send_malfunction():
                         request.headers["Authorization"].split(" ")[1]
                     ),
                     malfunction_data["malfunction_type"],
+                    (
+                        malfunction_data["message"]
+                        if malfunction_data.get("message")
+                        else None
+                    ),
                 ),
             )
 
@@ -190,7 +198,8 @@ def send_log():
                     """
                     INSERT INTO device_logs(
                         device_id,
-                        log_type) VALUES (%s, %s) RETURNING id;
+                        log_type,
+                        message) VALUES (%s, %s, %s) RETURNING id;
                     """
                 ),
                 (
@@ -198,6 +207,7 @@ def send_log():
                         request.headers["Authorization"].split(" ")[1]
                     ),
                     log_data["log_type"],
+                    log_data["message"] if log_data.get("message") else None,
                 ),
             )
 

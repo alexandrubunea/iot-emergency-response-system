@@ -520,6 +520,7 @@ def fetch_all_alerts():
                     a.device_id,
                     a.alert_type,
                     a.alert_time,
+                    a.message,
                     a.resolved,
                     sd.name AS device_name,
                     b.name AS business_name
@@ -542,9 +543,10 @@ def fetch_all_alerts():
                 "device_id": a[1],
                 "alert_type": a[2],
                 "alert_time": a[3].isoformat() if a[3] else None,
-                "resolved": a[4],
-                "device_name": a[5],
-                "business_name": a[6],
+                "message": a[4],
+                "resolved": a[5],
+                "device_name": a[6],
+                "business_name": a[7],
             }
 
             result.append(alert_data)
@@ -584,6 +586,7 @@ def fetch_all_malfunctions():
                     m.device_id,
                     m.malfunction_type,
                     m.malfunction_time,
+                    m.message,
                     m.resolved,
                     sd.name AS device_name,
                     b.name AS business_name
@@ -606,9 +609,10 @@ def fetch_all_malfunctions():
                 "device_id": m[1],
                 "malfunction_type": m[2],
                 "malfunction_time": m[3].isoformat() if m[3] else None,
-                "resolved": m[4],
-                "device_name": m[5],
-                "business_name": m[6],
+                "message": m[4],
+                "resolved": m[5],
+                "device_name": m[6],
+                "business_name": m[7],
             }
 
             result.append(malfunction_data)
@@ -651,6 +655,7 @@ def fetch_all_device_logs():
                     dl.device_id,
                     dl.log_time,
                     dl.log_type,
+                    dl.message,
                     sd.name AS device_name,
                     b.name AS business_name
                 FROM
@@ -672,8 +677,9 @@ def fetch_all_device_logs():
                 "device_id": dl[1],
                 "log_time": dl[2].isoformat() if dl[2] else None,
                 "log_type": dl[3],
-                "device_name": dl[4],
-                "business_name": dl[5],
+                "message": dl[4],
+                "device_name": dl[5],
+                "business_name": dl[6],
             }
 
             result.append(device_log_data)

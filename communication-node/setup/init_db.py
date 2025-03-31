@@ -155,6 +155,7 @@ def create_tables():
                 device_id INTEGER NOT NULL,
                 alert_type VARCHAR(50) NOT NULL,
                 alert_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                message TEXT DEFAULT NULL,
                 resolved BOOLEAN DEFAULT FALSE,
                 CONSTRAINT fk_device FOREIGN KEY(device_id) REFERENCES security_devices(id)
                 ON DELETE CASCADE
@@ -174,6 +175,7 @@ def create_tables():
                 device_id INTEGER NOT NULL,
                 malfunction_type VARCHAR(50) NOT NULL,
                 malfunction_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                message TEXT DEFAULT NULL,
                 resolved BOOLEAN DEFAULT FALSE,
                 CONSTRAINT fk_device FOREIGN KEY(device_id) REFERENCES security_devices(id)
                 ON DELETE CASCADE
@@ -192,6 +194,7 @@ def create_tables():
                 device_id INTEGER NOT NULL,
                 log_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
                 log_type VARCHAR(50) NOT NULL,
+                message TEXT DEFAULT NULL,
                 CONSTRAINT fk_device FOREIGN KEY(device_id) REFERENCES security_devices(id)
                 ON DELETE CASCADE
             );
