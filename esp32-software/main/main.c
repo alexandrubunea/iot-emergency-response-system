@@ -15,6 +15,7 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 #include "sound_sensor.h"
+#include "utils.h"
 #include "wifi_manager.h"
 
 /* ESP32 Configuration */
@@ -25,41 +26,101 @@
 #define WIFI_AP_SSID "ESP32"
 #define WIFI_AP_PASS "admin1234"
 
+/* Fire Sensor Configuration */
+#define ENABLE_FIRE_SENSOR true
+#define FIRE_SENSOR_GPIO 35
+#define FIRE_SENSOR_IS_DIGITAL false
+#define FIRE_SENSOR_THRESHOLD 3500
+#define FIRE_SENSOR_TIMES_TO_TRIGGER 3
+
+/* Gas Sensor Configuration */
+#define ENABLE_GAS_SENSOR true
+#define GAS_SENSOR_GPIO 34
+#define GAS_SENSOR_IS_DIGITAL false
+#define GAS_SENSOR_THRESHOLD 500
+#define GAS_SENSOR_TIMES_TO_TRIGGER 0
+
+/* Motion Sensor Configuration */
+#define ENABLE_MOTION_SENSOR true
+#define MOTION_SENSOR_GPIO 13
+#define MOTION_SENSOR_IS_DIGITAL true
+#define MOTION_SENSOR_THRESHOLD -1
+#define MOTION_SENSOR_TIMES_TO_TRIGGER 3
+
+/* Sound Sensor Configuration */
+#define ENABLE_SOUND_SENSOR true
+#define SOUND_SENSOR_GPIO 27
+#define SOUND_SENSOR_IS_DIGITAL true
+#define SOUND_SENSOR_THRESHOLD -1
+#define SOUND_SENSOR_TIMES_TO_TRIGGER 3
+
 /* Function prototypes */
 config_t* allocate_configuration();
 bool read_flash_memory(nvs_handle_t handle);
 esp_err_t boot_sequence(config_t** device_cfg);
 void print_config(config_t* config);
+esp_err_t init_sensors(config_t* device_cfg);
 
 /* Main app */
 void app_main(void) {
 	config_t* device_cfg;
 
 	if (boot_sequence(&device_cfg) != ESP_OK) return;
+	ESP_LOGI("app_main", "Boot sequence complete.");
 
-	if (init_motion_sensor(13, true, -1, 0, device_cfg) != ESP_OK) {
-		ESP_LOGE("app_main", "Failed to initialize motion sensor. Turning off.");
+	ESP_LOGI("app_main", "Initializing sensors...");
+	if (init_sensors(device_cfg) != ESP_OK) {
+		ESP_LOGE("app_main", "Failed to initialize sensors. Turning off.");
 		return;
 	}
+	ESP_LOGI("app_main", "Sensors initialized.");
 
-	if (init_sound_sensor(27, true, -1, 0, device_cfg) != ESP_OK) {
-		ESP_LOGE("app_main", "Failed to initialize sound sensor. Turning off.");
-		return;
-	}
-
-	if (init_fire_sensor(35, false, 3500, 3, device_cfg) != ESP_OK) {
-		ESP_LOGE("app_main", "Failed to initialize fire sensor. Turning off.");
-		return;
-	}
-
-	if (init_gas_sensor(34, false, 500, 0, device_cfg) != ESP_OK) {
-		ESP_LOGE("app_main", "Failed to initialize gas sensor. Turning off.");
-		return;
-	}
+	send_log(device_cfg->api_key, "esp32_boot", "Device booted successfully.");
 
 	while (true) {
 		vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
+}
+
+esp_err_t init_sensors(config_t* device_cfg) {
+	if (ENABLE_MOTION_SENSOR &&
+		init_motion_sensor(MOTION_SENSOR_GPIO, MOTION_SENSOR_IS_DIGITAL, MOTION_SENSOR_THRESHOLD,
+						   MOTION_SENSOR_TIMES_TO_TRIGGER, device_cfg) != ESP_OK) {
+		send_malfunction(device_cfg->api_key, "motion_sensor",
+						 "Failed to initialize motion sensor.");
+
+		ESP_LOGE("init_sensors", "Failed to initialize motion sensor. Turning off.");
+		return ESP_FAIL;
+	}
+
+	if (ENABLE_SOUND_SENSOR &&
+		init_sound_sensor(SOUND_SENSOR_GPIO, SOUND_SENSOR_IS_DIGITAL, SOUND_SENSOR_THRESHOLD,
+						  SOUND_SENSOR_TIMES_TO_TRIGGER, device_cfg) != ESP_OK) {
+		send_malfunction(device_cfg->api_key, "sound_sensor", "Failed to initialize sound sensor.");
+
+		ESP_LOGE("init_sensors", "Failed to initialize sound sensor. Turning off.");
+		return ESP_FAIL;
+	}
+
+	if (ENABLE_FIRE_SENSOR &&
+		init_fire_sensor(FIRE_SENSOR_GPIO, FIRE_SENSOR_IS_DIGITAL, FIRE_SENSOR_THRESHOLD,
+						 FIRE_SENSOR_TIMES_TO_TRIGGER, device_cfg) != ESP_OK) {
+		send_malfunction(device_cfg->api_key, "fire_sensor", "Failed to initialize fire sensor.");
+
+		ESP_LOGE("init_sensors", "Failed to initialize fire sensor. Turning off.");
+		return ESP_FAIL;
+	}
+
+	if (ENABLE_GAS_SENSOR &&
+		init_gas_sensor(GAS_SENSOR_GPIO, GAS_SENSOR_IS_DIGITAL, GAS_SENSOR_THRESHOLD,
+						GAS_SENSOR_TIMES_TO_TRIGGER, device_cfg) != ESP_OK) {
+		send_malfunction(device_cfg->api_key, "gas_sensor", "Failed to initialize gas sensor.");
+
+		ESP_LOGE("init_sensors", "Failed to initialize gas sensor. Turning off.");
+		return ESP_FAIL;
+	}
+
+	return ESP_OK;
 }
 
 esp_err_t boot_sequence(config_t** device_cfg) {

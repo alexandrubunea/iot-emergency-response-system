@@ -5,19 +5,31 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "sensor.h"
+#include "utils.h"
 
 const static char* TAG = "gas_sensor";
 
 // cppcheck-suppress constParameterCallback
 static void gas_sensor_event(void* pvParameters) {
-	const Sensor* gas_sensor = (const Sensor*)pvParameters;
+	Sensor* gas_sensor = (Sensor*)pvParameters;
 
 	while (true) {
-		if (read_signal(gas_sensor) >= gas_sensor->treshold) {
-			ESP_LOGI(TAG, "Gas detected");
+		int value = read_signal(gas_sensor);
+
+		if (value != -1 && value >= gas_sensor->treshold) {
+			gas_sensor->times_triggered++;
+			ESP_LOGI(TAG, "Gas detected. Times triggered: %d", gas_sensor->times_triggered);
+
+			if (gas_sensor->times_triggered >= gas_sensor->times_to_trigger) {
+				ESP_LOGI(TAG, "Gas detected %d times. Triggering alarm.",
+						 gas_sensor->times_to_trigger);
+				gas_sensor->times_triggered = 0;
+
+				send_alert(gas_sensor->device_cfg->api_key, "gas alert", NULL);
+			}
 		}
 
-		vTaskDelay(2000 / portTICK_PERIOD_MS);
+		vTaskDelay(2017 / portTICK_PERIOD_MS);
 	}
 }
 

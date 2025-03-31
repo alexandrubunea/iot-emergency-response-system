@@ -5,19 +5,29 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "sensor.h"
+#include "utils.h"
 
 const static char* TAG = "sound_sensor";
 
 // cppcheck-suppress constParameterCallback
 static void sound_sensor_event(void* pvParameters) {
-	const Sensor* sound_sensor = (const Sensor*)pvParameters;
+	Sensor* sound_sensor = (Sensor*)pvParameters;
 
 	while (true) {
 		if (read_signal(sound_sensor)) {
-			ESP_LOGI(TAG, "Sound detected");
+			sound_sensor->times_triggered++;
+			ESP_LOGI(TAG, "Sound detected. Times triggered: %d", sound_sensor->times_triggered);
+
+			if (sound_sensor->times_triggered >= sound_sensor->times_to_trigger) {
+				ESP_LOGI(TAG, "Sound detected %d times. Triggering alarm.",
+						 sound_sensor->times_to_trigger);
+				sound_sensor->times_triggered = 0;
+
+				send_alert(sound_sensor->device_cfg->api_key, "sound_alert", NULL);
+			}
 		}
 
-		vTaskDelay(50 / portTICK_PERIOD_MS);
+		vTaskDelay(100 / portTICK_PERIOD_MS);
 	}
 }
 

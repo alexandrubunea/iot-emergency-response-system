@@ -6,7 +6,7 @@
 #include "config_storage.h"
 #include "esp_err.h"
 
-#define GAS_SENSOR_STACK_SIZE 2048
+#define GAS_SENSOR_STACK_SIZE 4096
 #define GAS_SENSOR_PRIORITY 5
 
 /**

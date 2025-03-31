@@ -5,16 +5,26 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "sensor.h"
+#include "utils.h"
 
 const static char* TAG = "motion_sensor";
 
 // cppcheck-suppress constParameterCallback
 static void motion_sensor_event(void* pvParameters) {
-	const Sensor* motion_sensor = (const Sensor*)pvParameters;
+	Sensor* motion_sensor = (Sensor*)pvParameters;
 
 	while (true) {
 		if (read_signal(motion_sensor)) {
-			ESP_LOGI(TAG, "Motion detected.");
+			motion_sensor->times_triggered++;
+			ESP_LOGI(TAG, "Motion detected. Times triggered: %d", motion_sensor->times_triggered);
+
+			if (motion_sensor->times_triggered >= motion_sensor->times_to_trigger) {
+				ESP_LOGI(TAG, "Motion detected %d times. Triggering alarm.",
+						 motion_sensor->times_to_trigger);
+				motion_sensor->times_triggered = 0;
+
+				send_alert(motion_sensor->device_cfg->api_key, "motion_alert", "");
+			}
 		}
 
 		vTaskDelay(500 / portTICK_PERIOD_MS);
