@@ -38,7 +38,7 @@
 #define GAS_SENSOR_GPIO 34
 #define GAS_SENSOR_IS_DIGITAL false
 #define GAS_SENSOR_THRESHOLD 500
-#define GAS_SENSOR_TIMES_TO_TRIGGER 0
+#define GAS_SENSOR_TIMES_TO_TRIGGER 2
 
 /* Motion Sensor Configuration */
 #define ENABLE_MOTION_SENSOR true

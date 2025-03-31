@@ -25,7 +25,7 @@ static void gas_sensor_event(void* pvParameters) {
 						 gas_sensor->times_to_trigger);
 				gas_sensor->times_triggered = 0;
 
-				send_alert(gas_sensor->device_cfg->api_key, "gas alert", NULL);
+				send_alert(gas_sensor->device_cfg->api_key, "gas_alert", NULL);
 			}
 		}
 
