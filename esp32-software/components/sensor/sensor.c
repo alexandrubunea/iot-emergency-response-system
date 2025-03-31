@@ -53,7 +53,7 @@ static esp_err_t init_analog(Sensor** sensor) {
 }
 
 Sensor* init_sensor(gpio_num_t gpio, bool is_digital, int treshold, int times_to_trigger,
-					config_t* device_cfg) {
+					int required_reset_ticks, config_t* device_cfg) {
 	Sensor* sensor = (Sensor*)malloc(sizeof(Sensor));
 
 	if (sensor == NULL) return NULL;
@@ -64,6 +64,8 @@ Sensor* init_sensor(gpio_num_t gpio, bool is_digital, int treshold, int times_to
 	sensor->times_triggered = 0;
 	sensor->times_to_trigger = times_to_trigger;
 	sensor->device_cfg = device_cfg;
+	sensor->required_reset_ticks = required_reset_ticks;
+	sensor->reset_ticks_count = 0;
 
 	if (is_digital && gpio_set_direction(sensor->gpio, GPIO_MODE_INPUT) != ESP_OK) {
 		ESP_LOGE(TAG, "Failed to set GPIO direction.");

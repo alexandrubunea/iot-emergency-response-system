@@ -30,13 +30,23 @@ static void fire_sensor_event(void* pvParameters) {
 			}
 		}
 
+		if (fire_sensor->times_triggered > 0) {
+			fire_sensor->reset_ticks_count++;
+
+			if (fire_sensor->reset_ticks_count >= fire_sensor->required_reset_ticks) {
+				ESP_LOGI(TAG, "Inactivity detected. Resetting sensor trigger.");
+				fire_sensor->reset_ticks_count = 0;
+				fire_sensor->times_triggered = 0;
+			}
+		}
+
 		vTaskDelay(521 / portTICK_PERIOD_MS);
 	}
 }
 
 esp_err_t init_fire_sensor(int gpio, bool is_digital, int treshold, int times_to_trigger,
 						   config_t* device_cfg) {
-	Sensor* fire_sensor = init_sensor(gpio, is_digital, treshold, times_to_trigger, device_cfg);
+	Sensor* fire_sensor = init_sensor(gpio, is_digital, treshold, times_to_trigger, 10, device_cfg);
 
 	if (fire_sensor == NULL) {
 		ESP_LOGE(TAG, "Failed to allocate memory for the sensor.");

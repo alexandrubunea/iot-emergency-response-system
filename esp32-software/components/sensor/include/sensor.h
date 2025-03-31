@@ -14,6 +14,8 @@ typedef struct sensor {
 	int treshold;
 	int times_triggered;
 	int times_to_trigger;
+	int required_reset_ticks;
+	int reset_ticks_count;
 
 	config_t* device_cfg;
 
@@ -30,11 +32,12 @@ typedef struct sensor {
  * @param treshold Threshold value for analog sensor (unused for digital sensors).
  * @param times_to_trigger Number of times the sensor must trigger before the signal is considered
  * valid.
+ * @param required_reset_ticks Number of ticks required to reset the sensor trigger.
  * @param device_cfg Pointer to the device configuration structure.
  * @return Pointer to the initialized Sensor structure, or NULL on failure.
  */
 Sensor* init_sensor(gpio_num_t gpio, bool is_digital, int treshold, int times_to_trigger,
-					config_t* device_cfg);
+					int required_reset_ticks, config_t* device_cfg);
 
 /**
  * @brief Reads the signal from the sensor.

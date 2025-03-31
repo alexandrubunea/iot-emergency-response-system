@@ -27,13 +27,25 @@ static void motion_sensor_event(void* pvParameters) {
 			}
 		}
 
+		if (motion_sensor->times_triggered > 0) {
+			motion_sensor->reset_ticks_count++;
+
+			if (motion_sensor->reset_ticks_count >= motion_sensor->required_reset_ticks) {
+				ESP_LOGI(TAG, "Inactivity detected. Resetting sensor trigger.");
+
+				motion_sensor->reset_ticks_count = 0;
+				motion_sensor->times_triggered = 0;
+			}
+		}
+
 		vTaskDelay(500 / portTICK_PERIOD_MS);
 	}
 }
 
 esp_err_t init_motion_sensor(int gpio, bool is_digital, int treshold, int times_to_trigger,
 							 config_t* device_cfg) {
-	Sensor* motion_sensor = init_sensor(gpio, is_digital, treshold, times_to_trigger, device_cfg);
+	Sensor* motion_sensor =
+		init_sensor(gpio, is_digital, treshold, times_to_trigger, 100, device_cfg);
 
 	if (motion_sensor == NULL) {
 		ESP_LOGE(TAG, "Failed to allocate memory for the sensor.");

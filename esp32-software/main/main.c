@@ -78,7 +78,7 @@ void app_main(void) {
 	send_log(device_cfg->api_key, "esp32_boot", "Device booted successfully.");
 
 	while (true) {
-		vTaskDelay(1000 / portTICK_PERIOD_MS);
+		vTaskDelay(100 / portTICK_PERIOD_MS);
 	}
 }
 

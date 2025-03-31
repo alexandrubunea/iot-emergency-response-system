@@ -29,13 +29,23 @@ static void gas_sensor_event(void* pvParameters) {
 			}
 		}
 
+		if (gas_sensor->times_triggered > 0) {
+			gas_sensor->reset_ticks_count++;
+
+			if (gas_sensor->reset_ticks_count >= gas_sensor->required_reset_ticks) {
+				ESP_LOGI(TAG, "Inactivity detected. Resetting sensor trigger.");
+				gas_sensor->reset_ticks_count = 0;
+				gas_sensor->times_triggered = 0;
+			}
+		}
+
 		vTaskDelay(2017 / portTICK_PERIOD_MS);
 	}
 }
 
 esp_err_t init_gas_sensor(int gpio, bool is_digital, int treshold, int times_to_trigger,
 						  config_t* device_cfg) {
-	Sensor* gas_sensor = init_sensor(gpio, is_digital, treshold, times_to_trigger, device_cfg);
+	Sensor* gas_sensor = init_sensor(gpio, is_digital, treshold, times_to_trigger, 5, device_cfg);
 
 	if (gas_sensor == NULL) {
 		ESP_LOGE(TAG, "Failed to allocate memory for the sensor.");

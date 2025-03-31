@@ -27,13 +27,25 @@ static void sound_sensor_event(void* pvParameters) {
 			}
 		}
 
+		if (sound_sensor->times_triggered > 0) {
+			sound_sensor->reset_ticks_count++;
+
+			if (sound_sensor->reset_ticks_count >= sound_sensor->required_reset_ticks) {
+				ESP_LOGI(TAG, "Inactivity detected. Resetting sensor trigger.");
+
+				sound_sensor->reset_ticks_count = 0;
+				sound_sensor->times_triggered = 0;
+			}
+		}
+
 		vTaskDelay(100 / portTICK_PERIOD_MS);
 	}
 }
 
 esp_err_t init_sound_sensor(int gpio, bool is_digital, int treshold, int times_to_trigger,
 							config_t* device_cfg) {
-	Sensor* sound_sensor = init_sensor(gpio, is_digital, treshold, times_to_trigger, device_cfg);
+	Sensor* sound_sensor =
+		init_sensor(gpio, is_digital, treshold, times_to_trigger, 200, device_cfg);
 
 	if (sound_sensor == NULL) {
 		ESP_LOGE(TAG, "Failed to allocate memory for the sensor.");
