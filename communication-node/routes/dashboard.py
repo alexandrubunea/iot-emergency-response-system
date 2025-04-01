@@ -525,7 +525,7 @@ def fetch_all_alerts():
                     sd.name AS device_name,
                     b.name AS business_name
                 FROM
-                    alert a
+                    alerts a
                 JOIN
                     security_devices sd ON a.device_id = sd.id
                 JOIN

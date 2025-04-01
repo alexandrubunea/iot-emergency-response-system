@@ -198,7 +198,7 @@ function BusinesesList({ toggleFunction }: BusinesesListProps) {
                                 <p className="text-zinc-400 mt-2 poppins-light">
                                     Your search did not match any business. Try
                                     adjusting your search terms or adding a new
-                                    employee.
+                                    business.
                                 </p>
                             </div>
                         </div>

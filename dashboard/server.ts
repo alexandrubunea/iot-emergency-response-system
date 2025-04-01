@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 
 import { fileURLToPath } from "url";
-import { fetchAllBusinesses, addNewBusiness, deleteBusiness } from "./routes/businessRoutes.js";
+import { fetchAllBusinesses, addNewBusiness, deleteBusiness, getAlerts } from "./routes/businessRoutes.js";
 import { deleteDevice } from "./routes/deviceRoutes.js";
 import { addEmployee, deleteEmployee, getEmployees } from "./routes/employeeRoutes.js";
 
@@ -32,6 +32,8 @@ app.delete("/api/devices/:id", deleteDevice);
 app.get("/api/employees", getEmployees);
 app.post("/api/employees", addEmployee);
 app.delete("/api/employees/:id", deleteEmployee);
+
+app.get("/api/alerts", getAlerts);
 
 app.get("*", (_: Request, res: Response) => {
     res.sendFile(path.join(__dirname, "dist", "index.html"));
