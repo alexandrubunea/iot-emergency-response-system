@@ -2,13 +2,17 @@ import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import DOMPurify from "dompurify";
+import { io } from "socket.io-client";
 import { Alert } from "../../types/Alert";
 import AlertRow from "../../components/AlertRow";
 import { createAlertsFromJson } from "../../utils/createObjectsFromJson";
 
 function Alerts() {
-    const API_URL = import.meta.env.VITE_API_URL;
-
+    const API_URL = import.meta.env.VITE_EXPRESS_API_URL;
+    const socketRef = useRef(io(import.meta.env.VITE_EXPRESS_API_URL, {
+        transports: ["websocket"],
+    }));
+// NOT WORKING YET
     const { data, isPending, isError, isSuccess } = useQuery({
         queryKey: ["alerts"],
         queryFn: async () => {
@@ -30,6 +34,25 @@ function Alerts() {
         }
     }, [isSuccess, data]);
 
+    useEffect(() => {
+        const socket = socketRef.current;
+
+        socket.on("update-alerts", (alertData: Alert) => {
+            setAlertsData((prevAlerts) => {
+                const newAlerts = prevAlerts;
+                newAlerts.push(alertData);
+                alerts_full.current = newAlerts;
+                return newAlerts;
+            });
+            console.log("Received new alert from Flask:", alertData);
+        });
+
+        return () => {
+            socket.off("update-alerts");
+            socket.disconnect();
+        };
+    }, []);
+
     const searchBusiness = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -40,13 +63,12 @@ function Alerts() {
             return;
         }
 
-        let alerts_filtred = alertsData.filter((alert) =>
-            alert.business_name
-                .toLocaleLowerCase()
-                .includes(inputValue.toLocaleLowerCase())
+        const searchTerm = input.toLowerCase();
+        let alerts_filtered = alerts_full.current.filter((alert) =>
+            alert.business_name.toLowerCase().includes(searchTerm)
         );
 
-        setAlertsData(alerts_filtred);
+        setAlertsData(alerts_filtered);
     };
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {

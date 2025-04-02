@@ -7,7 +7,6 @@ import os
 import logging
 import psycopg2
 from psycopg2 import pool
-from dotenv import load_dotenv
 
 # Configure logging
 logger = logging.getLogger("database")
@@ -21,9 +20,6 @@ file_handler.setFormatter(formatter)
 
 if not logger.hasHandlers():
     logger.addHandler(file_handler)
-
-# Load environment variables from .env file
-load_dotenv()
 
 # Default connection parameters
 DEFAULT_MIN_CONNECTIONS = 1

@@ -115,7 +115,7 @@ function AddNewBusiness({
         }
 
         try {
-            const API_URL = import.meta.env.VITE_API_URL;
+            const API_URL = import.meta.env.VITE_EXPRESS_API_URL;
             const sanitizedData = {
                 name: DOMPurify.sanitize(formData.businessName),
                 latitude: parseFloat(formData.latitude),

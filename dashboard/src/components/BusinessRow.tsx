@@ -47,7 +47,7 @@ function BusinessRow({ business, onRemove }: BusinessRowProps) {
         );
 
     const onRemoveDevice = (deviceId: number) => {
-        const API_URL = import.meta.env.VITE_API_URL;
+        const API_URL = import.meta.env.VITE_EXPRESS_API_URL;
         axios
             .delete(`${API_URL}/api/devices/${deviceId}`)
             .then((res) => {

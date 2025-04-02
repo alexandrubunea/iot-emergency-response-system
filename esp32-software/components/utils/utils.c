@@ -96,7 +96,7 @@ static void send_event(const char* api_key, const char* type, const char* value,
 	}
 
 	char url[128];
-	snprintf(url, sizeof(url), "http://192.168.1.132:5000/api/send_%s", type);
+	snprintf(url, sizeof(url), "http://192.168.1.135:5000/api/send_%s", type);
 
 	send_http_request(url, api_key, post_data);
 	free(post_data);

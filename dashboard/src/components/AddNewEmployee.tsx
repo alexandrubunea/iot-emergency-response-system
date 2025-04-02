@@ -93,7 +93,7 @@ function AddNewEmployee({
         }
 
         try {
-            const API_URL = import.meta.env.VITE_API_URL;
+            const API_URL = import.meta.env.VITE_EXPRESS_API_URL;
             const sanitizedData = {
                 first_name: DOMPurify.sanitize(formData.first_name),
                 last_name: DOMPurify.sanitize(formData.last_name),

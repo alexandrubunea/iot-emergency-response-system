@@ -12,7 +12,7 @@ type EmployeesListProps = {
 };
 
 function EmployeesList({ toggleFunction }: EmployeesListProps) {
-    const API_URL = import.meta.env.VITE_API_URL;
+    const API_URL = import.meta.env.VITE_EXPRESS_API_URL;
 
     const { isPending, isError, isSuccess, data } = useQuery({
         queryKey: ["employeesData"],
@@ -173,8 +173,8 @@ function EmployeesList({ toggleFunction }: EmployeesListProps) {
                 <div className="rounded-lg bg-zinc-800 text-zinc-200 p-5 shadow-md min-h-40">
                     {isPending && (
                         <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12">
-                            <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-500 border-t-transparent"></div>
-                            <h3 className="text-2xl poppins-bold text-zinc-300">
+                            <div className="animate-spin rounded-full h-10 w-10 border-4 border-pink-500 border-t-transparent"></div>
+                            <h3 className="text-xl poppins-bold text-zinc-300">
                                 Loading Employees...
                             </h3>
                         </div>
@@ -182,8 +182,8 @@ function EmployeesList({ toggleFunction }: EmployeesListProps) {
 
                     {isError && (
                         <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12">
-                            <i className="fa-solid fa-triangle-exclamation text-5xl text-red-500 mb-4"></i>
-                            <h3 className="text-2xl poppins-bold text-zinc-300">
+                            <i className="fa-solid fa-triangle-exclamation text-3xl text-red-500 mb-4"></i>
+                            <h3 className="text-xl poppins-bold text-zinc-300">
                                 Error Fetching Employees
                             </h3>
                             <p className="text-zinc-400 text-base max-w-md">
@@ -195,8 +195,8 @@ function EmployeesList({ toggleFunction }: EmployeesListProps) {
 
                     {isSuccess && employees.length === 0 && (
                         <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12">
-                            <i className="fa-solid fa-face-frown text-5xl text-zinc-500 mb-4"></i>
-                            <h3 className="text-2xl poppins-bold text-zinc-300">
+                            <i className="fa-solid fa-face-frown text-3xl text-zinc-500 mb-4"></i>
+                            <h3 className="text-xl poppins-bold text-zinc-300">
                                 No employees found
                             </h3>
                             <p className="text-zinc-400 text-base max-w-md">

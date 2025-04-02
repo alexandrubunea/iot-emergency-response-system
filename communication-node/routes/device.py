@@ -3,6 +3,7 @@ Handles the communication between the database and the device endpoints.
 """
 
 import logging
+from datetime import datetime
 from flask import Blueprint, jsonify, request
 import psycopg2
 from psycopg2 import sql
@@ -10,6 +11,7 @@ from psycopg2 import sql
 from decorators.validate_auth import validate_auth_header
 from decorators.validate_json_payload import validate_json_payload
 from utils.db import DatabaseManager
+from utils.websocket_client import SocketIOClient
 
 # Configure logging
 logger = logging.getLogger("device_blueprint")
@@ -56,6 +58,61 @@ def get_device_id_by_api_key(api_key):
         DatabaseManager.release_connection(connection)
 
 
+def get_device_name(device_id):
+    """
+    Retrieve the device name associated with the given device ID.
+    """
+    connection = DatabaseManager.get_connection()
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                sql.SQL(
+                    """
+                    SELECT name FROM security_devices
+                    WHERE id = %s;
+                    """
+                ),
+                (device_id,),
+            )
+
+            device_name = cur.fetchone()[0]
+            return device_name
+    except psycopg2.Error as e:
+        logger.error("Error retrieving device name by ID: %s", e)
+        return None
+    finally:
+        DatabaseManager.release_connection(connection)
+
+
+def get_device_business_name(device_id):
+    """
+    Retrieve the device business name associated with the given device ID.
+    """
+    connection = DatabaseManager.get_connection()
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                sql.SQL(
+                    """
+                    SELECT b.name FROM security_devices sd
+                    JOIN businesses b ON sd.business_id = b.id
+                    WHERE sd.id = %s;
+                    """
+                ),
+                (device_id,),
+            )
+
+            business_name = cur.fetchone()[0]
+            return business_name
+    except psycopg2.Error as e:
+        logger.error("Error retrieving device business name by ID: %s", e)
+        return None
+    finally:
+        DatabaseManager.release_connection(connection)
+
+
 @device_bp.route("/api/send_alert", methods=["POST"], endpoint="send_alert_device")
 @validate_auth_header(required_access_level=2)
 @validate_json_payload(
@@ -73,6 +130,10 @@ def send_alert():
 
     try:
         with connection.cursor() as cur:
+            device_id = get_device_id_by_api_key(
+                request.headers["Authorization"].split(" ")[1]
+            )
+
             cur.execute(
                 sql.SQL(
                     """
@@ -83,9 +144,7 @@ def send_alert():
                     """
                 ),
                 (
-                    get_device_id_by_api_key(
-                        request.headers["Authorization"].split(" ")[1]
-                    ),
+                    device_id,
                     alert_data["alert_type"],
                     alert_data["message"] if alert_data.get("message") else None,
                 ),
@@ -95,6 +154,25 @@ def send_alert():
             connection.commit()
 
             logger.info("Alert saved to database with ID: %s", alert_id)
+
+            # Emit the alert to the Socket.IO server
+            socket_client = SocketIOClient()
+            socket_client.emit_new_alert(
+                {
+                    "id": alert_id,
+                    "device_id": device_id,
+                    "device_name": get_device_name(device_id),
+                    "alert_time": datetime.now().isoformat(),
+                    "alert_type": alert_data["alert_type"],
+                    "business_name": get_device_business_name(device_id),
+                    "message": (
+                        alert_data["message"] if alert_data.get("message") else None
+                    ),
+                    "resolved": False,
+                }
+            )
+            logger.info("Alert emitted to Socket.IO server.")
+
             return (
                 jsonify({"status": "success", "message": "Alert saved to database."}),
                 200,

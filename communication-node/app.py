@@ -6,11 +6,14 @@ import logging
 import sys
 from flask import Flask
 import psycopg2
+from dotenv import load_dotenv
 
 from routes.configurator import configurator_bp
 from routes.dashboard import dashboard_bp
 from routes.device import device_bp
 from utils.db import DatabaseManager
+
+load_dotenv()
 
 app = Flask(__name__)
 

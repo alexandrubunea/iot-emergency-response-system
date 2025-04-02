@@ -63,7 +63,6 @@ export function createEmployeesFromJson(data: any[]): Array<Employee> {
 
 export function createAlertsFromJson(data: any[]): Array<any> {
     let result: Array<any> = [];
-
     data.forEach(alert => {
         let alertObj = {
             _id: alert["_id"],

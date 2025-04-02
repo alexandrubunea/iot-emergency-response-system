@@ -8,6 +8,7 @@ import os
 import logging
 import psycopg2
 
+
 # Setup logging
 logger = logging.getLogger("db_init")
 logger.setLevel(logging.INFO)
