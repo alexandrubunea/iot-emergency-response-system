@@ -4,7 +4,7 @@ import ResetAlertButton from "./ResetAlertButton";
 import ResetMalfunctionButton from "./ResetMalfunctionButton";
 import { Business } from "../models/Business";
 import { SensorStatus } from "../types/Device";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type BusinessMapPinProps = {
     business: Business;
@@ -71,6 +71,12 @@ function BusinessMapPin({ business }: BusinessMapPinProps) {
     const [getMalfunctionStatus, setMalfunctionStatus] = useState(
         business.anyBrokenDevice()
     );
+
+    useEffect(() => {
+        setAlertStatus(business.alert);
+        setMalfunctionStatus(business.anyBrokenDevice());
+    }
+    , [business]);
 
     const getSensorStatusIcon = (status: SensorStatus) => {
         switch (status) {

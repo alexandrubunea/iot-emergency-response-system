@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { MapContainer, TileLayer, ZoomControl } from "react-leaflet";
 import BusinessMapPin from "../components/BusinessMapPin";
 import CarMapPin from "../components/CarMapPin";
 import { Business } from "../models/Business";
 import { useQuery } from "@tanstack/react-query";
 import { createBusinessesFromJson } from "../utils/createObjectsFromJson";
+import { io } from "socket.io-client";
+import { Alert } from "../types/Alert";
 
 function Map() {
     const { isSuccess, data } = useQuery({
@@ -31,6 +33,45 @@ function Map() {
             }
         },
     });
+    const socketRef = useRef(
+        io(import.meta.env.VITE_EXPRESS_API_URL, {
+            transports: ["websocket"],
+        })
+    );
+
+    useEffect(() => {
+        const socket = socketRef.current;
+
+        const handleUpdateAlerts = (alertData: Alert) => {
+            const updateBusinessInstance = (business: Business): Business => {
+                if (business.id === alertData.business_id) {
+                    return new Business(
+                        business.id,
+                        business.key,
+                        business.name,
+                        business.address,
+                        business.lat,
+                        business.lon,
+                        business.devices,
+                        true,
+                        business.contactName,
+                        business.contactPhone,
+                        business.contactEmail
+                    );
+                }
+                return business;
+            };
+            setBusinesses((prevBusinesses) =>
+                prevBusinesses.map(updateBusinessInstance)
+            );
+        };
+
+        socket.on("update-alerts", handleUpdateAlerts);
+
+        return () => {
+            socket.off("update-alerts", handleUpdateAlerts);
+        };
+    }, []);
 
     const [businesses, setBusinesses] = useState<Business[]>([]);
 

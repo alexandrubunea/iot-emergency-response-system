@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import DOMPurify from "dompurify";
 import axios from "axios";
+import { io } from "socket.io-client";
 import { useQuery } from "@tanstack/react-query";
 import BusinessRow from "../components/BusinessRow";
 import { Business } from "../models/Business";
 import { createBusinessesFromJson } from "../utils/createObjectsFromJson";
 import { sweetAlert } from "../utils/ui";
+import { Alert } from "../types/Alert";
 
 type BusinesesListProps = {
     toggleFunction: () => void;
@@ -13,34 +15,57 @@ type BusinesesListProps = {
 
 function BusinesesList({ toggleFunction }: BusinesesListProps) {
     const API_URL = import.meta.env.VITE_EXPRESS_API_URL;
-
-    const { isPending, isError, isSuccess, data } = useQuery({
-        queryKey: ["businessesData"],
-        queryFn: async () => {
-            try {
-                const response = await fetch(`${API_URL}/api/businesses`, {
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error(
-                        `Error ${response.status}: ${response.statusText}`
-                    );
-                }
-
-                return response.json();
-            } catch (error) {
-                console.error("Failed to fetch businesses:", error);
-                throw error;
-            }
-        },
-    });
-
+    const socketRef = useRef(
+        io(import.meta.env.VITE_EXPRESS_API_URL, {
+            transports: ["websocket"],
+        })
+    );
     const [inputValue, setInputValue] = useState("");
     const [businesses, setBusinesses] = useState<Business[]>([]);
     const businesses_full = useRef<Business[]>([]);
+
+    const { data, isPending, isError, isSuccess } = useQuery({
+        queryKey: ["businesses"],
+        queryFn: async () => {
+            const response = await axios.get(`${API_URL}/api/businesses`);
+            return response.data;
+        },
+        staleTime: 5000,
+    });
+
+    useEffect(() => {
+        const socket = socketRef.current;
+
+        const handleUpdateAlerts = (alertData: Alert) => {
+            const updateBusinessInstance = (business: Business): Business => {
+                if (business.id === alertData.business_id) {
+                    return new Business(
+                        business.id,
+                        business.key,
+                        business.name,
+                        business.address,
+                        business.lat,
+                        business.lon,
+                        business.devices,
+                        true,
+                        business.contactName,
+                        business.contactPhone,
+                        business.contactEmail
+                    );
+                }
+                return business;
+            };
+            setBusinesses((prevBusinesses) => prevBusinesses.map(updateBusinessInstance));
+
+            businesses_full.current = businesses_full.current.map(updateBusinessInstance);
+        };
+
+        socket.on("update-alerts", handleUpdateAlerts);
+
+        return () => {
+            socket.off("update-alerts", handleUpdateAlerts);
+        };
+    }, []);
 
     useEffect(() => {
         if (isSuccess && data) {
@@ -116,6 +141,7 @@ function BusinesesList({ toggleFunction }: BusinesesListProps) {
                 );
             });
     };
+
     return (
         <>
             <div className="max-w-4xl mx-auto p-6 space-y-6">

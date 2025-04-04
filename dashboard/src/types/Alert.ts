@@ -6,6 +6,7 @@ export type Alert = {
     alert_time: string;
     alert_type: string;
     business_name: string;
+    business_id: number;
     message: string | null;
     resolved: boolean;
 }

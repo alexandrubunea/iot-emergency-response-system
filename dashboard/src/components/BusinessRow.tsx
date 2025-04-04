@@ -32,6 +32,11 @@ function BusinessRow({ business, onRemove }: BusinessRowProps) {
     );
     const [getAlertStatus, setAlertStatus] = useState(business.alert);
 
+    useEffect(() => {
+        setMalfunctionStatus(business.anyBrokenDevice());
+        setAlertStatus(business.alert);
+    }, [business]);
+
     const showConfirmation = () =>
         sweetAlert(
             "Are you sure?",

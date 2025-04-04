@@ -72,6 +72,7 @@ export function createAlertsFromJson(data: any[]): Array<any> {
             alert_time: alert["alert_time"],
             alert_type: alert["alert_type"],
             business_name: alert["business_name"],
+            business_id: alert["business_id"],
             message: alert["message"],
             resolved: alert["resolved"]
         }

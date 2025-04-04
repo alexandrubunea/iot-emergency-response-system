@@ -104,7 +104,6 @@ function Alerts() {
         axios
             .post(`${API_URL}/api/solve_alert/${alertId}`)
             .then(() => {
-                // Filter out the deleted alert
                 alerts_full.current = alerts_full.current.filter(
                     (alert) => alert.id !== alertId
                 );

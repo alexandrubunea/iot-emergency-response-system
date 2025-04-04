@@ -85,9 +85,10 @@ def get_device_name(device_id):
         DatabaseManager.release_connection(connection)
 
 
-def get_device_business_name(device_id):
+def get_device_business_info(device_id):
     """
-    Retrieve the device business name associated with the given device ID.
+    Retrieve the business name and ID associated with the given device ID.
+    Returns a tuple of (business_id, business_name) or (None, None) if not found.
     """
     connection = DatabaseManager.get_connection()
 
@@ -96,7 +97,7 @@ def get_device_business_name(device_id):
             cur.execute(
                 sql.SQL(
                     """
-                    SELECT b.name FROM security_devices sd
+                    SELECT b.id, b.name FROM security_devices sd
                     JOIN businesses b ON sd.business_id = b.id
                     WHERE sd.id = %s;
                     """
@@ -104,11 +105,14 @@ def get_device_business_name(device_id):
                 (device_id,),
             )
 
-            business_name = cur.fetchone()[0]
-            return business_name
+            result = cur.fetchone()
+            if result:
+                business_id, business_name = result
+                return business_id, business_name
+            return None, None
     except psycopg2.Error as e:
-        logger.error("Error retrieving device business name by ID: %s", e)
-        return None
+        logger.error("Error retrieving device business info by ID: %s", e)
+        return None, None
     finally:
         DatabaseManager.release_connection(connection)
 
@@ -155,6 +159,9 @@ def send_alert():
 
             logger.info("Alert saved to database with ID: %s", alert_id)
 
+            # Get the business name and ID associated with the device
+            business_id, business_name = get_device_business_info(device_id)
+
             # Emit the alert to the Socket.IO server
             socket_client = SocketIOClient()
             socket_client.emit_new_alert(
@@ -164,7 +171,8 @@ def send_alert():
                     "device_name": get_device_name(device_id),
                     "alert_time": datetime.now().isoformat(),
                     "alert_type": alert_data["alert_type"],
-                    "business_name": get_device_business_name(device_id),
+                    "business_name": business_name,
+                    "business_id": business_id,
                     "message": (
                         alert_data["message"] if alert_data.get("message") else None
                     ),
