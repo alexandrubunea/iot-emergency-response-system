@@ -270,7 +270,12 @@ function BusinessMapPin({ business }: BusinessMapPinProps) {
                                 onReset={alertReset}
                             />
                         )}
-                        {getMalfunctionStatus && <ResetMalfunctionButton />}
+                        {getMalfunctionStatus && (
+                            <ResetMalfunctionButton
+                                bussinessId={business.id}
+                                onReset={malfunctionReset}
+                            />
+                        )}
                     </div>
                 </div>
             </Popup>

@@ -44,12 +44,16 @@ export async function addNewBusiness(req: Request, res: Response) {
         if (API_KEY === undefined)
             throw Error("COMMUNICATION_NODE_API_KEY not defined in .env file.");
 
-        const response = await axios.post(`${API_HOST}/api/businesses`, req.body, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${API_KEY}`,
-            },
-        });
+        const response = await axios.post(
+            `${API_HOST}/api/businesses`,
+            req.body,
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${API_KEY}`,
+                },
+            }
+        );
 
         res.json(response.data);
     } catch (error) {
@@ -71,12 +75,15 @@ export async function deleteBusiness(req: Request, res: Response) {
         if (API_KEY === undefined)
             throw Error("COMMUNICATION_NODE_API_KEY not defined in .env file.");
 
-        const response = await axios.delete(`${API_HOST}/api/businesses/${req.params.id}`, {
-            method: "DELETE",
-            headers: {
-                Authorization: `Bearer ${API_KEY}`,
-            },
-        });
+        const response = await axios.delete(
+            `${API_HOST}/api/businesses/${req.params.id}`,
+            {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${API_KEY}`,
+                },
+            }
+        );
 
         res.json(response.data);
     } catch (error) {
@@ -126,12 +133,47 @@ export async function resetAlerts(req: Request, res: Response) {
         if (API_KEY === undefined)
             throw Error("COMMUNICATION_NODE_API_KEY not defined in .env file.");
 
-        const response = await axios.post(`${API_HOST}/api/solve_business_alerts/${req.params.id}`, {}, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${API_KEY}`,
-            },
+        const response = await axios.post(
+            `${API_HOST}/api/solve_business_alerts/${req.params.id}`,
+            {},
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${API_KEY}`,
+                },
+            }
+        );
+
+        res.json(response.data);
+    } catch (error) {
+        console.log(error);
+
+        res.status(500).json({
+            message: "Failed to post data.",
         });
+    }
+}
+
+export async function resetMalfunctions(req: Request, res: Response) {
+    const API_KEY = process.env.COMMUNICATION_NODE_API_KEY;
+    const API_HOST = process.env.COMMUNICATION_NODE_HOST;
+
+    try {
+        if (API_HOST === undefined)
+            throw Error("COMMUNICATION_NODE_HOST not defined in .env file.");
+        if (API_KEY === undefined)
+            throw Error("COMMUNICATION_NODE_API_KEY not defined in .env file.");
+
+        const response = await axios.post(
+            `${API_HOST}/api/solve_business_malfunctions/${req.params.id}`,
+            {},
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${API_KEY}`,
+                },
+            }
+        );
 
         res.json(response.data);
     } catch (error) {

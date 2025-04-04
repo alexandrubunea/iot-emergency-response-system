@@ -226,7 +226,12 @@ function BusinessRow({ business, onRemove }: BusinessRowProps) {
                                     onReset={alertReset}
                                 />
                             )}
-                            {getMalfunctionStatus && <ResetMalfunctionButton />}
+                            {getMalfunctionStatus && (
+                                <ResetMalfunctionButton
+                                    bussinessId={business.id}
+                                    onReset={malfunctionReset}
+                                />
+                            )}
                             <DeleteButton
                                 text="Delete Business"
                                 showConfirmation={showConfirmation}

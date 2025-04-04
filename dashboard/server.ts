@@ -13,6 +13,7 @@ import {
     deleteBusiness,
     getAlerts,
     resetAlerts,
+    resetMalfunctions,
 } from "./routes/businessRoutes.js";
 import { deleteDevice, solveAlert } from "./routes/deviceRoutes.js";
 import {
@@ -88,6 +89,7 @@ app.post("/api/businesses", addNewBusiness);
 app.delete("/api/businesses/:id", deleteBusiness);
 app.get("/api/alerts", getAlerts);
 app.post("/api/solve_business_alerts/:id", resetAlerts);
+app.post("/api/solve_business_malfunctions/:id", resetMalfunctions);
 
 app.delete("/api/devices/:id", deleteDevice);
 
