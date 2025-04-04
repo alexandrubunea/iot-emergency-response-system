@@ -71,3 +71,29 @@ class SocketIOClient:
 
         logger.info("Emitting new alert...")
         self.sio.emit("new-alert", alert_data)
+
+    def emit_new_malfunction(self, malfunction_data):
+        """Send a secure malfunction event to the Express server."""
+        if not self.sio.connected:
+            logger.info("SocketIO client is not connected. Attempting to reconnect...")
+            try:
+                self.connect()
+            except Exception as e:
+                logger.error("Failed to reconnect: %s", e)
+                return
+
+        logger.info("Emitting new malfunction...")
+        self.sio.emit("new-malfunction", malfunction_data)
+
+    def emit_new_log(self, log_data):
+        """Send a secure log event to the Express server."""
+        if not self.sio.connected:
+            logger.info("SocketIO client is not connected. Attempting to reconnect...")
+            try:
+                self.connect()
+            except Exception as e:
+                logger.error("Failed to reconnect: %s", e)
+                return
+
+        logger.info("Emitting new log...")
+        self.sio.emit("new-log", log_data)

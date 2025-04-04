@@ -101,3 +101,22 @@ export function createMalfunctionsFromJson(data: any[]): Array<any> {
 
     return result;
 }
+
+export function createLogsFromJson(data: any[]): Array<any> {
+    let result: Array<any> = [];
+    data.forEach(log => {
+        let logObj = {
+            _id: log["_id"],
+            id: log["id"],
+            device_id: log["device_id"],
+            device_name: log["device_name"],
+            log_time: log["log_time"],
+            log_type: log["log_type"],
+            business_name: log["business_name"],
+            message: log["message"]
+        }
+        result.push(logObj);
+    });
+
+    return result;
+}

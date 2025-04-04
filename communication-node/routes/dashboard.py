@@ -531,6 +531,7 @@ def fetch_all_alerts():
                     a.resolved,
                     sd.name AS device_name,
                     b.name AS business_name
+                    b.id AS business_id
                 FROM
                     alerts a
                 JOIN
@@ -556,6 +557,7 @@ def fetch_all_alerts():
                 "resolved": a[5],
                 "device_name": a[6],
                 "business_name": a[7],
+                "business_id": a[8],
             }
 
             result.append(alert_data)
@@ -599,6 +601,7 @@ def fetch_all_malfunctions():
                     m.resolved,
                     sd.name AS device_name,
                     b.name AS business_name
+                    b.id AS business_id
                 FROM
                     malfunctions m
                 JOIN
@@ -624,6 +627,7 @@ def fetch_all_malfunctions():
                 "resolved": m[5],
                 "device_name": m[6],
                 "business_name": m[7],
+                "business_id": m[8],
             }
 
             result.append(malfunction_data)
@@ -669,6 +673,7 @@ def fetch_all_device_logs():
                     dl.message,
                     sd.name AS device_name,
                     b.name AS business_name
+                    b.id AS business_id
                 FROM
                     device_logs dl
                 JOIN
@@ -691,6 +696,7 @@ def fetch_all_device_logs():
                 "message": dl[4],
                 "device_name": dl[5],
                 "business_name": dl[6],
+                "business_id": dl[7],
             }
 
             result.append(device_log_data)

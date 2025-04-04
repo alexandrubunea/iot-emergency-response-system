@@ -216,6 +216,10 @@ def send_malfunction():
 
     try:
         with connection.cursor() as cur:
+            device_id = get_device_id_by_api_key(
+                request.headers["Authorization"].split(" ")[1]
+            )
+
             cur.execute(
                 sql.SQL(
                     """
@@ -226,9 +230,7 @@ def send_malfunction():
                     """
                 ),
                 (
-                    get_device_id_by_api_key(
-                        request.headers["Authorization"].split(" ")[1]
-                    ),
+                    device_id,
                     malfunction_data["malfunction_type"],
                     (
                         malfunction_data["message"]
@@ -242,6 +244,30 @@ def send_malfunction():
             connection.commit()
 
             logger.info("Malfunction saved to database with ID: %s", malfunction_id)
+
+            # Get the business name and ID associated with the device
+            business_id, business_name = get_device_business_info(device_id)
+
+            # Emit the malfunction to the Socket.IO server
+            socket_client = SocketIOClient()
+            socket_client.emit_new_malfunction(
+                {
+                    "id": malfunction_id,
+                    "device_id": device_id,
+                    "device_name": get_device_name(device_id),
+                    "malfunction_time": datetime.now().isoformat(),
+                    "malfunction_type": malfunction_data["malfunction_type"],
+                    "business_name": business_name,
+                    "business_id": business_id,
+                    "message": (
+                        malfunction_data["message"]
+                        if malfunction_data.get("message")
+                        else None
+                    ),
+                }
+            )
+            logger.info("Malfunction emitted to Socket.IO server.")
+
             return (
                 jsonify(
                     {"status": "success", "message": "Malfunction saved to database."}
@@ -279,19 +305,21 @@ def send_log():
 
     try:
         with connection.cursor() as cur:
+            device_id = get_device_id_by_api_key(
+                request.headers["Authorization"].split(" ")[1]
+            )
+
             cur.execute(
                 sql.SQL(
                     """
-                    INSERT INTO device_logs(
+                    INSERT INTO logs(
                         device_id,
                         log_type,
                         message) VALUES (%s, %s, %s) RETURNING id;
                     """
                 ),
                 (
-                    get_device_id_by_api_key(
-                        request.headers["Authorization"].split(" ")[1]
-                    ),
+                    device_id,
                     log_data["log_type"],
                     log_data["message"] if log_data.get("message") else None,
                 ),
@@ -301,6 +329,28 @@ def send_log():
             connection.commit()
 
             logger.info("Log saved to database with ID: %s", log_id)
+
+            # Get the business name and ID associated with the device
+            business_id, business_name = get_device_business_info(device_id)
+
+            # Emit the log to the Socket.IO server
+            socket_client = SocketIOClient()
+            socket_client.emit_new_log(
+                {
+                    "id": log_id,
+                    "device_id": device_id,
+                    "device_name": get_device_name(device_id),
+                    "log_time": datetime.now().isoformat(),
+                    "log_type": log_data["log_type"],
+                    "business_name": business_name,
+                    "business_id": business_id,
+                    "message": (
+                        log_data["message"] if log_data.get("message") else None
+                    ),
+                }
+            )
+            logger.info("Log emitted to Socket.IO server.")
+
             return (
                 jsonify({"status": "success", "message": "Log saved to database."}),
                 200,
