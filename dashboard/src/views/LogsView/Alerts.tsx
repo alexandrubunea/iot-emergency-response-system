@@ -6,6 +6,7 @@ import { io } from "socket.io-client";
 import { Alert } from "../../types/Alert";
 import AlertRow from "../../components/AlertRow";
 import { createAlertsFromJson } from "../../utils/createObjectsFromJson";
+import Pagination from "../../components/Pagination";
 
 function Alerts() {
     const API_URL = import.meta.env.VITE_EXPRESS_API_URL;
@@ -14,6 +15,9 @@ function Alerts() {
             transports: ["websocket"],
         })
     );
+    const resultsPerPage = 10;
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
 
     const { data, isPending, isError, isSuccess } = useQuery({
         queryKey: ["alerts"],
@@ -31,16 +35,19 @@ function Alerts() {
     useEffect(() => {
         if (isSuccess && data) {
             const alerts_json: Array<Alert> = createAlertsFromJson(data);
-            setAlertsData(alerts_json);
             alerts_full.current = alerts_json;
+            setTotalPages(Math.ceil(alerts_json.length / resultsPerPage));
+            setPage(1);
+            setAlertsData(alerts_json.slice(0, resultsPerPage));
         }
     }, [isSuccess, data]);
 
     const applyCurrentFilter = () => {
         const searchTerm = DOMPurify.sanitize(inputValue).toLowerCase();
-
         if (!searchTerm || !/\S/.test(searchTerm)) {
-            setAlertsData(alerts_full.current);
+            setTotalPages(Math.ceil(alerts_full.current.length / resultsPerPage));
+            setPage(1);
+            setAlertsData(alerts_full.current.slice(0, resultsPerPage));
             return;
         }
 
@@ -48,7 +55,9 @@ function Alerts() {
             alert.business_name.toLowerCase().includes(searchTerm)
         );
 
-        setAlertsData(filtered);
+        setTotalPages(Math.ceil(filtered.length / resultsPerPage));
+        setPage(1);
+        setAlertsData(filtered.slice(0, resultsPerPage));
     };
 
     useEffect(() => {
@@ -75,6 +84,17 @@ function Alerts() {
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setInputValue(event.target.value);
+    };
+
+    const handlePageChange = (newPage: number) => {
+        if (newPage < 1 || newPage > totalPages) return;
+        setPage(newPage);
+
+        setAlertsData(() => {
+            const startIndex = (newPage - 1) * resultsPerPage;
+            const endIndex = startIndex + resultsPerPage;
+            return alerts_full.current.slice(startIndex, endIndex);
+        });
     };
 
     return (
@@ -175,6 +195,11 @@ function Alerts() {
                         </div>
                     )}
                 </div>
+                <Pagination
+                    page={page}
+                    totalPages={totalPages}
+                    handlePageChange={handlePageChange}
+                />
             </div>
         </>
     );
