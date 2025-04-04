@@ -2,9 +2,9 @@ import { Marker, Popup } from "react-leaflet";
 import { Icon } from "leaflet";
 import ResetAlertButton from "./ResetAlertButton";
 import ResetMalfunctionButton from "./ResetMalfunctionButton";
-import ViewLogsButton from "./ViewLogsButton";
 import { Business } from "../models/Business";
 import { SensorStatus } from "../types/Device";
+import { useState } from "react";
 
 type BusinessMapPinProps = {
     business: Business;
@@ -33,11 +33,9 @@ function BusinessMapPin({ business }: BusinessMapPinProps) {
     });
 
     const getBusinessIcon = () => {
-        if (business.alert)
-            return IconAlert;
+        if (getAlertStatus) return IconAlert;
 
-        if (business.anyBrokenDevice())
-            return IconWarning;
+        if (getMalfunctionStatus) return IconWarning;
 
         return IconNormal;
     };
@@ -69,7 +67,10 @@ function BusinessMapPin({ business }: BusinessMapPinProps) {
         (sensor) => sensor.value !== SensorStatus.SENSOR_NOT_USED
     );
 
-    const malfunction = business.anyBrokenDevice();
+    const [getAlertStatus, setAlertStatus] = useState(business.alert);
+    const [getMalfunctionStatus, setMalfunctionStatus] = useState(
+        business.anyBrokenDevice()
+    );
 
     const getSensorStatusIcon = (status: SensorStatus) => {
         switch (status) {
@@ -93,6 +94,14 @@ function BusinessMapPin({ business }: BusinessMapPinProps) {
         }
     };
 
+    const alertReset = () => {
+        setAlertStatus(false);
+    };
+
+    const malfunctionReset = () => {
+        setMalfunctionStatus(false);
+    };
+
     return (
         <Marker
             position={[business.lat, business.lon]}
@@ -102,9 +111,9 @@ function BusinessMapPin({ business }: BusinessMapPinProps) {
                 <div className="p-4 bg-zinc-900 text-zinc-200 rounded-lg shadow-md poppins-medium w-72">
                     <div
                         className={`-m-4 mb-4 p-3 ${
-                            business.alert
+                            getAlertStatus
                                 ? "bg-red-900/70"
-                                : malfunction
+                                : getMalfunctionStatus
                                 ? "bg-amber-900/50"
                                 : "bg-emerald-900/50"
                         } rounded-t-lg`}
@@ -113,15 +122,15 @@ function BusinessMapPin({ business }: BusinessMapPinProps) {
                             <div className="flex items-center">
                                 <i
                                     className={`fa-solid ${
-                                        business.alert
+                                        getAlertStatus
                                             ? "fa-bell"
-                                            : malfunction
+                                            : getMalfunctionStatus
                                             ? "fa-triangle-exclamation"
                                             : "fa-building"
                                     } mr-2 ${
-                                        business.alert
+                                        getAlertStatus
                                             ? "text-red-400"
-                                            : malfunction
+                                            : getMalfunctionStatus
                                             ? "text-amber-400"
                                             : "text-emerald-400"
                                     }`}
@@ -132,16 +141,16 @@ function BusinessMapPin({ business }: BusinessMapPinProps) {
                             </div>
                             <div
                                 className={`text-xs px-2 py-0.5 rounded-full ${
-                                    business.alert
+                                    getAlertStatus
                                         ? "bg-red-600"
-                                        : malfunction
+                                        : getMalfunctionStatus
                                         ? "bg-amber-600"
                                         : "bg-emerald-600"
                                 }`}
                             >
-                                {business.alert
+                                {getAlertStatus
                                     ? "ALERT"
-                                    : malfunction
+                                    : getMalfunctionStatus
                                     ? "WARNING"
                                     : "SECURE"}
                             </div>
@@ -158,21 +167,21 @@ function BusinessMapPin({ business }: BusinessMapPinProps) {
                         </div>
                     </div>
 
-                    {(business.alert || malfunction) && (
+                    {(getAlertStatus || getMalfunctionStatus) && (
                         <div
                             className={`mb-4 p-2 rounded ${
-                                business.alert
+                                getAlertStatus
                                     ? "bg-red-950/50 border border-red-800"
                                     : "bg-amber-950/50 border border-amber-800"
                             }`}
                         >
-                            {business.alert && (
+                            {getAlertStatus && (
                                 <div className="text-red-400 poppins-bold flex items-center gap-2 mb-1">
                                     <i className="fa-solid fa-bell"></i>
                                     <span>Security Alert Triggered</span>
                                 </div>
                             )}
-                            {malfunction && (
+                            {getMalfunctionStatus && (
                                 <div className="text-amber-400 poppins-bold flex items-center gap-2">
                                     <i className="fa-solid fa-triangle-exclamation"></i>
                                     <span>Device Malfunction Detected</span>
@@ -208,7 +217,7 @@ function BusinessMapPin({ business }: BusinessMapPinProps) {
                                             sensor.value
                                         )} ${
                                             sensor.value ===
-                                                SensorStatus.SENSOR_MALFUNCTION
+                                            SensorStatus.SENSOR_MALFUNCTION
                                                 ? "animate__animated animate__pulse animate__infinite"
                                                 : ""
                                         }`}
@@ -255,9 +264,13 @@ function BusinessMapPin({ business }: BusinessMapPinProps) {
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                        {business.alert && <ResetAlertButton />}
-                        {malfunction && <ResetMalfunctionButton />}
-                        <ViewLogsButton />
+                        {getAlertStatus && (
+                            <ResetAlertButton
+                                businessId={business.id}
+                                onReset={alertReset}
+                            />
+                        )}
+                        {getMalfunctionStatus && <ResetMalfunctionButton />}
                     </div>
                 </div>
             </Popup>

@@ -4,7 +4,6 @@ import axios from "axios";
 import SecurityDeviceItem from "./SecurityDeviceItem";
 import ResetAlertButton from "./ResetAlertButton";
 import ResetMalfunctionButton from "./ResetMalfunctionButton";
-import ViewLogsButton from "./ViewLogsButton";
 import { Business } from "../models/Business";
 import { Device } from "../models/Device";
 import BusinessRowTitle from "./BusinessRowTitle";
@@ -28,7 +27,10 @@ function BusinessRow({ business, onRemove }: BusinessRowProps) {
         setShowDetails(!showDetails);
     };
 
-    const malfunction = business.anyBrokenDevice();
+    const [getMalfunctionStatus, setMalfunctionStatus] = useState(
+        business.anyBrokenDevice()
+    );
+    const [getAlertStatus, setAlertStatus] = useState(business.alert);
 
     const showConfirmation = () =>
         sweetAlert(
@@ -89,6 +91,14 @@ function BusinessRow({ business, onRemove }: BusinessRowProps) {
             });
     };
 
+    const alertReset = () => {
+        setAlertStatus(false);
+    };
+
+    const malfunctionReset = () => {
+        setMalfunctionStatus(false);
+    };
+
     return (
         <div className="rounded-md bg-zinc-900 text-zinc-200 p-4 border border-zinc-800 shadow-lg hover:border-zinc-700 transition-all">
             <div className="grid grid-cols-12 gap-2 items-center">
@@ -96,8 +106,8 @@ function BusinessRow({ business, onRemove }: BusinessRowProps) {
                     <div className="flex items-center">
                         <BusinessRowTitle
                             text={business.name}
-                            malfunction={malfunction}
-                            alert={business.alert}
+                            malfunction={getMalfunctionStatus}
+                            alert={getAlertStatus}
                         />
                     </div>
                     <div className="flex flex-col poppins-light text-xs md:text-sm text-zinc-400 mt-1">
@@ -210,9 +220,13 @@ function BusinessRow({ business, onRemove }: BusinessRowProps) {
                         </div>
 
                         <div className="mt-6 flex flex-wrap gap-3 items-stretch">
-                            {business.alert && <ResetAlertButton />}
-                            {malfunction && <ResetMalfunctionButton />}
-                            <ViewLogsButton />
+                            {getAlertStatus && (
+                                <ResetAlertButton
+                                    businessId={business.id}
+                                    onReset={alertReset}
+                                />
+                            )}
+                            {getMalfunctionStatus && <ResetMalfunctionButton />}
                             <DeleteButton
                                 text="Delete Business"
                                 showConfirmation={showConfirmation}

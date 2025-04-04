@@ -12,6 +12,7 @@ import {
     addNewBusiness,
     deleteBusiness,
     getAlerts,
+    resetAlerts,
 } from "./routes/businessRoutes.js";
 import { deleteDevice, solveAlert } from "./routes/deviceRoutes.js";
 import {
@@ -85,6 +86,8 @@ io.on("connection", (socket: Socket) => {
 app.get("/api/businesses", fetchAllBusinesses);
 app.post("/api/businesses", addNewBusiness);
 app.delete("/api/businesses/:id", deleteBusiness);
+app.get("/api/alerts", getAlerts);
+app.post("/api/solve_business_alerts/:id", resetAlerts);
 
 app.delete("/api/devices/:id", deleteDevice);
 
@@ -92,7 +95,6 @@ app.get("/api/employees", getEmployees);
 app.post("/api/employees", addEmployee);
 app.delete("/api/employees/:id", deleteEmployee);
 
-app.get("/api/alerts", getAlerts);
 app.post("/api/solve_alert/:id", solveAlert);
 
 app.get("*", (_: Request, res: Response) => {
