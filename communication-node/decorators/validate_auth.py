@@ -39,8 +39,7 @@ def validate_auth_header(required_access_level=0):
         def wrapper(*args, **kwargs):
             auth_header = request.headers.get("Authorization")
 
-            # Check if Authorization header exists and is properly formatted
-            if not auth_header or " " not in auth_header:
+            if not auth_header or not auth_header.lower().startswith("bearer "):
                 logger.warning("Invalid Authorization header format")
                 return (
                     jsonify(
@@ -52,21 +51,8 @@ def validate_auth_header(required_access_level=0):
                     400,
                 )
 
-            # Extract API key from header
-            auth_type, api_key = auth_header.split(" ", 1)
-            if auth_type.lower() != "bearer":
-                logger.warning("Invalid Authorization type, expected 'Bearer'")
-                return (
-                    jsonify(
-                        {
-                            "status": "error",
-                            "message": "Invalid Authorization type, expected 'Bearer'",
-                        }
-                    ),
-                    400,
-                )
+            _, api_key = auth_header.split(" ", 1)
 
-            # Validate API key
             if not check_api_key(api_key, required_access_level):
                 logger.warning(
                     "Invalid API key or insufficient access level: %s...", api_key[:8]
@@ -81,7 +67,6 @@ def validate_auth_header(required_access_level=0):
                     401,
                 )
 
-            # API key is valid, proceed with the function
             return func(*args, **kwargs)
 
         return wrapper

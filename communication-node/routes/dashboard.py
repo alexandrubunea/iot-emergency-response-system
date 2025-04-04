@@ -537,6 +537,8 @@ def fetch_all_alerts():
                     security_devices sd ON a.device_id = sd.id
                 JOIN
                     businesses b ON sd.business_id = b.id
+                WHERE
+                    a.resolved = FALSE
                 ORDER BY
                     a.alert_time DESC
                 """

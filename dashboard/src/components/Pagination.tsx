@@ -12,6 +12,7 @@ function Pagination({ page, totalPages, handlePageChange }: PaginationProps) {
             return (
                 <span
                     aria-current="page"
+                    key="current-page"
                     className="w-10 h-10 flex items-center justify-center rounded-md text-lg poppins-light bg-rose-500/40"
                 >
                     {pageNum}
@@ -23,6 +24,7 @@ function Pagination({ page, totalPages, handlePageChange }: PaginationProps) {
             <button
                 onClick={() => handlePageChange(pageNum)}
                 type="button"
+                key={`page-${pageNum}`}
                 aria-label={`Go to page ${pageNum}`}
                 className="w-10 h-10 flex items-center justify-center rounded-md text-lg poppins-light bg-zinc-700 hover:bg-zinc-900 active:bg-zinc-950 transition-colors duration-300 hover:cursor-pointer"
             >

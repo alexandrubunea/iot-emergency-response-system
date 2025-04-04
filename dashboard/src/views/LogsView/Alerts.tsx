@@ -7,6 +7,7 @@ import { Alert } from "../../types/Alert";
 import AlertRow from "../../components/AlertRow";
 import { createAlertsFromJson } from "../../utils/createObjectsFromJson";
 import Pagination from "../../components/Pagination";
+import { sweetAlert } from "../../utils/ui";
 
 function Alerts() {
     const API_URL = import.meta.env.VITE_EXPRESS_API_URL;
@@ -45,7 +46,9 @@ function Alerts() {
     const applyCurrentFilter = () => {
         const searchTerm = DOMPurify.sanitize(inputValue).toLowerCase();
         if (!searchTerm || !/\S/.test(searchTerm)) {
-            setTotalPages(Math.ceil(alerts_full.current.length / resultsPerPage));
+            setTotalPages(
+                Math.ceil(alerts_full.current.length / resultsPerPage)
+            );
             setPage(1);
             setAlertsData(alerts_full.current.slice(0, resultsPerPage));
             return;
@@ -95,6 +98,53 @@ function Alerts() {
             const endIndex = startIndex + resultsPerPage;
             return alerts_full.current.slice(startIndex, endIndex);
         });
+    };
+
+    const onDelete = (alertId: number) => {
+        axios
+            .post(`${API_URL}/api/solve_alert/${alertId}`)
+            .then(() => {
+                // Filter out the deleted alert
+                alerts_full.current = alerts_full.current.filter(
+                    (alert) => alert.id !== alertId
+                );
+
+                const newTotalPages = Math.ceil(alerts_full.current.length / resultsPerPage);
+                setTotalPages(newTotalPages);
+
+                if (page > newTotalPages) {
+                    handlePageChange(Math.max(1, newTotalPages));
+                } else {
+                    handlePageChange(page);
+                }
+
+                sweetAlert(
+                    "Alert Solved",
+                    "The alert has been marked as solved.",
+                    "success",
+                    "",
+                    "",
+                    false,
+                    false,
+                    3000,
+                    null,
+                    null
+                );
+            })
+            .catch(() => {
+                sweetAlert(
+                    "Error",
+                    "There was an error marking the alert as solved.",
+                    "error",
+                    "",
+                    "",
+                    false,
+                    false,
+                    5000,
+                    null,
+                    null
+                );
+            });
     };
 
     return (
@@ -190,7 +240,7 @@ function Alerts() {
                                 Search Results
                             </h2>
                             {alertsData.map((alert: Alert) => (
-                                <AlertRow key={alert._id} alert={alert} />
+                                <AlertRow key={alert._id} alert={alert} onDelete={() => onDelete(alert.id)} />
                             ))}
                         </div>
                     )}

@@ -1,10 +1,12 @@
 import { Alert } from "../types/Alert";
+import { sweetAlert } from "../utils/ui";
 
 type AlertRowProps = {
     alert: Alert;
+    onDelete: (alertId: number) => void;
 };
 
-function AlertRow({ alert }: AlertRowProps) {
+function AlertRow({ alert, onDelete }: AlertRowProps) {
     const getAlertIcon = (alertType: string) => {
         switch (alertType) {
             case "motion_alert":
@@ -19,6 +21,21 @@ function AlertRow({ alert }: AlertRowProps) {
                 return "fa-circle-question";
         }
     };
+
+    const showConfirmation = (alertId: number) => {
+        sweetAlert(
+            "Are you sure?",
+            "This alert will be marked as solved.",
+            "warning",
+            "Yes, mark as solved",
+            "Cancel",
+            true,
+            true,
+            0,
+            () => onDelete(alertId),
+            null
+        );
+    }
 
     return (
         <div className="bg-rose-700/70 rounded-md overflow-hidden shadow-lg border border-rose-900">
@@ -65,7 +82,9 @@ function AlertRow({ alert }: AlertRowProps) {
                     )}
 
                     <div className="mt-6 flex justify-end">
-                        <button className="bg-zinc-100 hover:bg-zinc-200 active:bg-zinc-300 text-red-600 poppins-medium px-4 py-2 rounded-md flex items-center transition-colors duration-200 shadow-md hover:cursor-pointer">
+                        <button
+                            onClick={() => showConfirmation(alert.id)}
+                            className="bg-zinc-100 hover:bg-zinc-200 active:bg-zinc-300 text-red-600 poppins-medium px-4 py-2 rounded-md flex items-center transition-colors duration-200 shadow-md hover:cursor-pointer">
                             <i className="fa-solid fa-check mr-2"></i>
                             Mark as solved
                         </button>
