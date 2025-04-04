@@ -120,11 +120,17 @@ def fetch_all_businesses():
         with connection.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, name, lat, lon, address, created_at,
-                       contact_name, contact_email, contact_phone
-                FROM businesses
-                ORDER BY name ASC
-            """
+                SELECT b.id, b.name, b.lat, b.lon, b.address, b.created_at,
+                       b.contact_name, b.contact_email, b.contact_phone,
+                       EXISTS (
+                           SELECT 1
+                           FROM security_devices sd
+                           JOIN alerts a ON sd.id = a.device_id
+                           WHERE sd.business_id = b.id AND a.resolved = FALSE
+                       ) AS alert
+                FROM businesses b
+                ORDER BY b.name ASC
+                """
             )
             businesses = cur.fetchall()
 
@@ -136,6 +142,7 @@ def fetch_all_businesses():
                 "lat": b[2],
                 "lon": b[3],
                 "address": b[4],
+                "alert": b[9],
             }
 
             if len(b) > 5:

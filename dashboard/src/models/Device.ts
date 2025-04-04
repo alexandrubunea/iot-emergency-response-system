@@ -34,15 +34,8 @@ export class Device implements IDevice {
     public anyBrokenSensor(): boolean {
         return (
             this.motion_sensor === SensorStatus.SENSOR_MALFUNCTION ||
-            this.motion_sensor === SensorStatus.SENSOR_OFFLINE ||
-
             this.sound_sensor === SensorStatus.SENSOR_MALFUNCTION ||
-            this.sound_sensor === SensorStatus.SENSOR_OFFLINE ||
-
             this.fire_sensor === SensorStatus.SENSOR_MALFUNCTION ||
-            this.fire_sensor === SensorStatus.SENSOR_OFFLINE ||
-
-            this.gas_sensor === SensorStatus.SENSOR_OFFLINE ||
             this.gas_sensor === SensorStatus.SENSOR_MALFUNCTION
         );
     }

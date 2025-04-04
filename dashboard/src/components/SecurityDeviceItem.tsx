@@ -9,7 +9,6 @@ type SecurityDeviceItemProps = {
 };
 
 function SecurityDeviceItem({ device, onRemove }: SecurityDeviceItemProps) {
-
     const sensors = [
         {
             name: "Motion Detection",
@@ -39,15 +38,6 @@ function SecurityDeviceItem({ device, onRemove }: SecurityDeviceItemProps) {
 
     const getDeviceHealth = () => {
         if (
-            activeSensors.some((s) => s.value === SensorStatus.SENSOR_OFFLINE)
-        ) {
-            return {
-                status: "offline",
-                color: "text-red-400",
-                bgColor: "bg-red-900/50",
-            };
-        }
-        if (
             activeSensors.some(
                 (s) => s.value === SensorStatus.SENSOR_MALFUNCTION
             )
@@ -59,7 +49,7 @@ function SecurityDeviceItem({ device, onRemove }: SecurityDeviceItemProps) {
             };
         }
         return {
-            status: "online",
+            status: "healthy",
             color: "text-emerald-400",
             bgColor: "bg-emerald-900/50",
         };
@@ -85,12 +75,10 @@ function SecurityDeviceItem({ device, onRemove }: SecurityDeviceItemProps) {
 
     const getSensorStatusIcon = (status: SensorStatus) => {
         switch (status) {
-            case SensorStatus.SENSOR_ONLINE:
+            case SensorStatus.SENSOR_HEALTHY:
                 return "fa-circle-check";
             case SensorStatus.SENSOR_MALFUNCTION:
                 return "fa-triangle-exclamation";
-            case SensorStatus.SENSOR_OFFLINE:
-                return "fa-circle-exclamation";
             default:
                 return "";
         }
@@ -98,12 +86,10 @@ function SecurityDeviceItem({ device, onRemove }: SecurityDeviceItemProps) {
 
     const getSensorStatusColor = (status: SensorStatus) => {
         switch (status) {
-            case SensorStatus.SENSOR_ONLINE:
+            case SensorStatus.SENSOR_HEALTHY:
                 return "text-emerald-400";
             case SensorStatus.SENSOR_MALFUNCTION:
                 return "text-amber-500";
-            case SensorStatus.SENSOR_OFFLINE:
-                return "text-red-400";
             default:
                 return "";
         }
@@ -125,12 +111,12 @@ function SecurityDeviceItem({ device, onRemove }: SecurityDeviceItemProps) {
                         >
                             <i
                                 className={`fa-solid ${
-                                    deviceHealth.status === "online"
+                                    deviceHealth.status === "healthy"
                                         ? "fa-signal"
                                         : "fa-triangle-exclamation"
                                 } mr-1`}
                             ></i>
-                            {deviceHealth.status === "online"
+                            {deviceHealth.status === "healthy"
                                 ? "Active"
                                 : deviceHealth.status === "warning"
                                 ? "Warning"
@@ -166,9 +152,7 @@ function SecurityDeviceItem({ device, onRemove }: SecurityDeviceItemProps) {
                                         sensor.value
                                     )} ${
                                         sensor.value ===
-                                            SensorStatus.SENSOR_MALFUNCTION ||
-                                        sensor.value ===
-                                            SensorStatus.SENSOR_OFFLINE
+                                        SensorStatus.SENSOR_MALFUNCTION
                                             ? "animate__animated animate__pulse animate__infinite"
                                             : ""
                                     }`}
@@ -178,12 +162,13 @@ function SecurityDeviceItem({ device, onRemove }: SecurityDeviceItemProps) {
                                             sensor.value
                                         )} mr-1`}
                                     ></i>
-                                    {sensor.value === SensorStatus.SENSOR_ONLINE
-                                        ? "Online"
+                                    {sensor.value ===
+                                    SensorStatus.SENSOR_HEALTHY
+                                        ? "Healthy"
                                         : sensor.value ===
                                           SensorStatus.SENSOR_MALFUNCTION
                                         ? "Malfunction"
-                                        : "Offline"}
+                                        : ""}
                                 </div>
                             </li>
                         ))}

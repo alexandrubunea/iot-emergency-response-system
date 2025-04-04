@@ -22,9 +22,6 @@ export async function fetchAllBusinesses(_: Request, res: Response) {
         let businesses = provideUniqueIdentifier(response.data)["data"];
         businesses.forEach((business: any) => {
             business["devices"] = provideUniqueIdentifier(business["devices"]);
-
-            // Temporary, until further implementation
-            business["alert"] = false;
         });
 
         res.json(businesses);

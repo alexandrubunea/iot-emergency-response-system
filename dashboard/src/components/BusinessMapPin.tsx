@@ -73,12 +73,10 @@ function BusinessMapPin({ business }: BusinessMapPinProps) {
 
     const getSensorStatusIcon = (status: SensorStatus) => {
         switch (status) {
-            case SensorStatus.SENSOR_ONLINE:
+            case SensorStatus.SENSOR_HEALTHY:
                 return "fa-circle-check";
             case SensorStatus.SENSOR_MALFUNCTION:
                 return "fa-triangle-exclamation";
-            case SensorStatus.SENSOR_OFFLINE:
-                return "fa-circle-exclamation";
             default:
                 return "";
         }
@@ -86,12 +84,10 @@ function BusinessMapPin({ business }: BusinessMapPinProps) {
 
     const getSensorStatusColor = (status: SensorStatus) => {
         switch (status) {
-            case SensorStatus.SENSOR_ONLINE:
+            case SensorStatus.SENSOR_HEALTHY:
                 return "text-emerald-400";
             case SensorStatus.SENSOR_MALFUNCTION:
                 return "text-amber-500";
-            case SensorStatus.SENSOR_OFFLINE:
-                return "text-red-400";
             default:
                 return "";
         }
@@ -212,9 +208,7 @@ function BusinessMapPin({ business }: BusinessMapPinProps) {
                                             sensor.value
                                         )} ${
                                             sensor.value ===
-                                                SensorStatus.SENSOR_MALFUNCTION ||
-                                            sensor.value ===
-                                                SensorStatus.SENSOR_OFFLINE
+                                                SensorStatus.SENSOR_MALFUNCTION
                                                 ? "animate__animated animate__pulse animate__infinite"
                                                 : ""
                                         }`}
@@ -225,12 +219,12 @@ function BusinessMapPin({ business }: BusinessMapPinProps) {
                                             )} mr-1`}
                                         ></i>
                                         {sensor.value ===
-                                        SensorStatus.SENSOR_ONLINE
-                                            ? "Online"
+                                        SensorStatus.SENSOR_HEALTHY
+                                            ? "Healthy"
                                             : sensor.value ===
                                               SensorStatus.SENSOR_MALFUNCTION
                                             ? "Malfunction"
-                                            : "Offline"}
+                                            : ""}
                                     </div>
                                 </li>
                             ))}

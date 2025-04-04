@@ -1,7 +1,6 @@
 export enum SensorStatus {
     SENSOR_NOT_USED = -1,
-    SENSOR_OFFLINE = 0,
-    SENSOR_ONLINE = 1,
+    SENSOR_HEALTHY = 1,
     SENSOR_MALFUNCTION = 2,
 }
 
