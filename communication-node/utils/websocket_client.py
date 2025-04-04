@@ -96,4 +96,4 @@ class SocketIOClient:
                 return
 
         logger.info("Emitting new log...")
-        self.sio.emit("new-log", log_data)
+        self.sio.emit("new-device_log", log_data)

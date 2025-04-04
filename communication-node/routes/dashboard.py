@@ -530,7 +530,7 @@ def fetch_all_alerts():
                     a.message,
                     a.resolved,
                     sd.name AS device_name,
-                    b.name AS business_name
+                    b.name AS business_name,
                     b.id AS business_id
                 FROM
                     alerts a
@@ -600,7 +600,7 @@ def fetch_all_malfunctions():
                     m.message,
                     m.resolved,
                     sd.name AS device_name,
-                    b.name AS business_name
+                    b.name AS business_name,
                     b.id AS business_id
                 FROM
                     malfunctions m
@@ -647,7 +647,7 @@ def fetch_all_malfunctions():
         DatabaseManager.release_connection(connection)
 
 
-@dashboard_bp.route("/api/device_logs", methods=["GET"])
+@dashboard_bp.route("/api/devices_logs", methods=["GET"])
 @validate_auth_header(required_access_level=0)
 @retry_on_db_error()
 def fetch_all_device_logs():
@@ -672,7 +672,7 @@ def fetch_all_device_logs():
                     dl.log_type,
                     dl.message,
                     sd.name AS device_name,
-                    b.name AS business_name
+                    b.name AS business_name,
                     b.id AS business_id
                 FROM
                     device_logs dl

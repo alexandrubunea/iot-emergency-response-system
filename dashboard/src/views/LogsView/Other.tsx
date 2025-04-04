@@ -28,7 +28,7 @@ function Other() {
     const { data, isPending, isError, isSuccess } = useQuery({
         queryKey: ["device_logs"],
         queryFn: async () => {
-            const response = await axios.get(`${API_URL}/api/device_logs`);
+            const response = await axios.get(`${API_URL}/api/devices_logs`);
             return response.data;
         },
         staleTime: 5000,
