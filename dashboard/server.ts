@@ -14,6 +14,7 @@ import {
     getAlerts,
     resetAlerts,
     resetMalfunctions,
+    getMalfunctions,
 } from "./routes/businessRoutes.js";
 import { deleteDevice, solveAlert } from "./routes/deviceRoutes.js";
 import {
@@ -81,6 +82,12 @@ io.on("connection", (socket: Socket) => {
         console.log("Received new alert from Flask:", alertData);
         io.emit("update-alerts", alertData);
     });
+
+    socket.on("new-malfunction", (malfunctionData) => {
+        malfunctionData._id = uuidv4();
+        console.log("Received new malfunction from Flask:", malfunctionData);
+        io.emit("update-malfunctions", malfunctionData);
+    });
 });
 
 // GET ROUTES
@@ -90,6 +97,7 @@ app.delete("/api/businesses/:id", deleteBusiness);
 app.get("/api/alerts", getAlerts);
 app.post("/api/solve_business_alerts/:id", resetAlerts);
 app.post("/api/solve_business_malfunctions/:id", resetMalfunctions);
+app.get("/api/malfunctions", getMalfunctions);
 
 app.delete("/api/devices/:id", deleteDevice);
 

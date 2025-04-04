@@ -605,6 +605,8 @@ def fetch_all_malfunctions():
                     security_devices sd ON m.device_id = sd.id
                 JOIN
                     businesses b ON sd.business_id = b.id
+                WHERE
+                    m.resolved = FALSE
                 ORDER BY
                     m.malfunction_time DESC
                 """

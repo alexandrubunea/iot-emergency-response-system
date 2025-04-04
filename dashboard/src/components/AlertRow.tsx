@@ -3,10 +3,10 @@ import { sweetAlert } from "../utils/ui";
 
 type AlertRowProps = {
     alert: Alert;
-    onDelete: (alertId: number) => void;
+    onSolve: (alertId: number) => void;
 };
 
-function AlertRow({ alert, onDelete }: AlertRowProps) {
+function AlertRow({ alert, onSolve }: AlertRowProps) {
     const getAlertIcon = (alertType: string) => {
         switch (alertType) {
             case "motion_alert":
@@ -32,7 +32,7 @@ function AlertRow({ alert, onDelete }: AlertRowProps) {
             true,
             true,
             0,
-            () => onDelete(alertId),
+            () => onSolve(alertId),
             null
         );
     }

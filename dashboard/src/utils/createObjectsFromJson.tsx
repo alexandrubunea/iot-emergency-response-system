@@ -81,3 +81,23 @@ export function createAlertsFromJson(data: any[]): Array<any> {
 
     return result;
 }
+
+export function createMalfunctionsFromJson(data: any[]): Array<any> {
+    let result: Array<any> = [];
+    data.forEach(malfunction => {
+        let malfunctionObj = {
+            _id: malfunction["_id"],
+            id: malfunction["id"],
+            device_id: malfunction["device_id"],
+            device_name: malfunction["device_name"],
+            malfunction_time: malfunction["malfunction_time"],
+            malfunction_type: malfunction["malfunction_type"],
+            business_name: malfunction["business_name"],
+            business_id: malfunction["business_id"],
+            message: malfunction["message"]
+        }
+        result.push(malfunctionObj);
+    });
+
+    return result;
+}

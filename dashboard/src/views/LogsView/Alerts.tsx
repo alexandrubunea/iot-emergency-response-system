@@ -117,7 +117,7 @@ function Alerts() {
         }
     };
 
-    const onDelete = (alertId: number) => {
+    const onSolve = (alertId: number) => {
         axios
             .post(`${API_URL}/api/solve_alert/${alertId}`)
             .then(() => {
@@ -204,7 +204,7 @@ function Alerts() {
             <div className="space-y-3">
                  <h2 className="text-xl domine-bold mb-4">Search Results</h2>
                  {displayedAlerts.map((alert: Alert) => (
-                     <AlertRow key={alert._id} alert={alert} onDelete={() => onDelete(alert.id)} />
+                     <AlertRow key={alert._id} alert={alert} onSolve={() => onSolve(alert.id)} />
                  ))}
              </div>
          );
