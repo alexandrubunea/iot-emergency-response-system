@@ -31,6 +31,48 @@ if not logger.hasHandlers():
 # Create Blueprint
 dashboard_bp = Blueprint("dashboard", __name__)
 
+# Sensor Status
+SENSOR_NOT_USED = -1
+SENSOR_HEALTHY = 1
+SENSOR_MALFUNCTION = 2
+
+
+def check_sensor_malfunction(device_id: int, sensor_type: str) -> int:
+    """
+    Checks if a specific sensor type of a device has reported a malfunction.
+
+    Args:
+        device_id (int): The ID of the device.
+        sensor_type (str): The type of sensor to check for malfunctions.
+
+    Returns:
+        bool: True if the sensor has reported a malfunction, False otherwise.
+    """
+    connection = DatabaseManager.get_connection()
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                sql.SQL(
+                    """
+                    SELECT EXISTS (
+                        SELECT 1
+                        FROM malfunctions
+                        WHERE device_id = %s AND malfunction_type = %s AND resolved = FALSE
+                    )
+                    """
+                ),
+                (device_id, sensor_type),
+            )
+            return SENSOR_MALFUNCTION if cur.fetchone()[0] else SENSOR_HEALTHY
+
+    except psycopg2.Error as e:
+        logger.error("Database error checking sensor malfunction: %s", e)
+        raise
+
+    finally:
+        DatabaseManager.release_connection(connection)
+
 
 def fetch_business_devices(business_id: int) -> list:
     """
@@ -67,10 +109,26 @@ def fetch_business_devices(business_id: int) -> list:
                 device_data = {
                     "id": d[0],
                     "name": d[1],
-                    "motion_sensor": 1 if d[2] else -1,
-                    "sound_sensor": 1 if d[3] else -1,
-                    "gas_sensor": 1 if d[4] else -1,
-                    "fire_sensor": 1 if d[5] else -1,
+                    "motion_sensor": (
+                        check_sensor_malfunction(d[0], "motion_sensor")
+                        if d[2]
+                        else SENSOR_NOT_USED
+                    ),
+                    "sound_sensor": (
+                        check_sensor_malfunction(d[0], "sound_sensor")
+                        if d[3]
+                        else SENSOR_NOT_USED
+                    ),
+                    "gas_sensor": (
+                        check_sensor_malfunction(d[0], "gas_sensor")
+                        if d[4]
+                        else SENSOR_NOT_USED
+                    ),
+                    "fire_sensor": (
+                        check_sensor_malfunction(d[0], "fire_sensor")
+                        if d[5]
+                        else SENSOR_NOT_USED
+                    ),
                 }
 
                 # Add additional fields if they exist in the database

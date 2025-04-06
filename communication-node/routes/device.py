@@ -312,7 +312,7 @@ def send_log():
             cur.execute(
                 sql.SQL(
                     """
-                    INSERT INTO logs(
+                    INSERT INTO device_logs(
                         device_id,
                         log_type,
                         message) VALUES (%s, %s, %s) RETURNING id;

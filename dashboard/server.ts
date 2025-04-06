@@ -17,7 +17,7 @@ import {
     getMalfunctions,
     getDeviceLogs,
 } from "./routes/businessRoutes.js";
-import { deleteDevice, solveAlert } from "./routes/deviceRoutes.js";
+import { deleteDevice, solveAlert, solveMalfunction } from "./routes/deviceRoutes.js";
 import {
     addEmployee,
     deleteEmployee,
@@ -114,6 +114,7 @@ app.post("/api/employees", addEmployee);
 app.delete("/api/employees/:id", deleteEmployee);
 
 app.post("/api/solve_alert/:id", solveAlert);
+app.post("/api/solve_malfunction/:id", solveMalfunction);
 
 app.get("*", (_: Request, res: Response) => {
     res.sendFile(path.join(__dirname, "dist", "index.html"));
