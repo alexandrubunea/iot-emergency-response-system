@@ -1,12 +1,14 @@
 import { useEffect, useState, useRef } from "react";
 import { MapContainer, TileLayer, ZoomControl } from "react-leaflet";
 import BusinessMapPin from "../components/BusinessMapPin";
-import CarMapPin from "../components/CarMapPin";
 import { Business } from "../models/Business";
 import { useQuery } from "@tanstack/react-query";
 import { createBusinessesFromJson } from "../utils/createObjectsFromJson";
 import { io } from "socket.io-client";
 import { Alert } from "../types/Alert";
+import { Malfunction } from "../types/Malfunction";
+import { Device } from "../models/Device";
+import { SensorStatus } from "../types/Device";
 
 function Map() {
     const { isSuccess, data } = useQuery({
@@ -44,7 +46,7 @@ function Map() {
 
         const handleUpdateAlerts = (alertData: Alert) => {
             const updateBusinessInstance = (business: Business): Business => {
-                if (business.id === alertData.business_id) {
+                if (business.id === alertData.business_id && !business.alert) {
                     return new Business(
                         business.id,
                         business.key,
@@ -61,15 +63,70 @@ function Map() {
                 }
                 return business;
             };
+
+            setBusinesses((prevBusinesses) =>
+                prevBusinesses.map(updateBusinessInstance)
+            );
+        };
+
+        const handleUpdateMalfunctions = (malfunctionData: Malfunction) => {
+            const updateDeviceInstance = (device: Device): Device => {
+                if (device.id === malfunctionData.device_id) {
+                    return new Device(
+                        device.id,
+                        device.key,
+                        device.name,
+                        malfunctionData.malfunction_type === "motion_sensor"
+                            ? SensorStatus.SENSOR_MALFUNCTION
+                            : device.motion_sensor,
+                        malfunctionData.malfunction_type === "sound_sensor"
+                            ? SensorStatus.SENSOR_MALFUNCTION
+                            : device.sound_sensor,
+                        malfunctionData.malfunction_type === "fire_sensor"
+                            ? SensorStatus.SENSOR_MALFUNCTION
+                            : device.fire_sensor,
+                        malfunctionData.malfunction_type === "gas_sensor"
+                            ? SensorStatus.SENSOR_MALFUNCTION
+                            : device.gas_sensor
+                    );
+                }
+
+                return device;
+            };
+
+            const updateBusinessInstance = (business: Business): Business => {
+                if (business.id === malfunctionData.business_id) {
+                    const updatedDevices =
+                        business.devices.map(updateDeviceInstance);
+
+                    return new Business(
+                        business.id,
+                        business.key,
+                        business.name,
+                        business.address,
+                        business.lat,
+                        business.lon,
+                        updatedDevices,
+                        business.alert,
+                        business.contactName,
+                        business.contactPhone,
+                        business.contactEmail
+                    );
+                }
+                return business;
+            };
+
             setBusinesses((prevBusinesses) =>
                 prevBusinesses.map(updateBusinessInstance)
             );
         };
 
         socket.on("update-alerts", handleUpdateAlerts);
+        socket.on("update-malfunctions", handleUpdateMalfunctions);
 
         return () => {
             socket.off("update-alerts", handleUpdateAlerts);
+            socket.off("update-malfunctions", handleUpdateMalfunctions);
         };
     }, []);
 
@@ -82,29 +139,6 @@ function Map() {
             setBusinesses(businesses_json);
         }
     }, [isSuccess, data]);
-
-    const mockup_cars = [
-        {
-            license_plate: "BV02WSC",
-            lat: 45.6563613,
-            lon: 25.6199825,
-        },
-        {
-            license_plate: "BV17WSC",
-            lat: 45.6602945,
-            lon: 25.5972262,
-        },
-        {
-            license_plate: "BV66WSC",
-            lat: 45.6644987,
-            lon: 25.5791601,
-        },
-        {
-            license_plate: "BV05WSC",
-            lat: 45.6728155,
-            lon: 25.6051891,
-        },
-    ];
 
     return (
         <>
@@ -124,14 +158,6 @@ function Map() {
                 <ZoomControl position="bottomright" />
                 {businesses.map((business) => (
                     <BusinessMapPin key={business.key} business={business} />
-                ))}
-                {mockup_cars.map((car, index) => (
-                    <CarMapPin
-                        key={index}
-                        license_plate={car.license_plate}
-                        lon={car.lon}
-                        lat={car.lat}
-                    />
                 ))}
             </MapContainer>
         </>

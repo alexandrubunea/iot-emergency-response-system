@@ -9,6 +9,9 @@ import { createBusinessesFromJson } from "../utils/createObjectsFromJson";
 import { sweetAlert } from "../utils/ui";
 import { Alert } from "../types/Alert";
 import Pagination from "../components/Pagination";
+import { Malfunction } from "../types/Malfunction";
+import { Device } from "../models/Device";
+import { SensorStatus } from "../types/Device";
 
 type BusinesesListProps = {
     toggleFunction: () => void;
@@ -112,10 +115,67 @@ function BusinesesList({ toggleFunction }: BusinesesListProps) {
             updateDisplayedData(page);
         };
 
+        const handleUpdateMalfunctions = (malfunctionData: Malfunction) => {
+            const updateDeviceInstance = (device: Device): Device => {
+                if (device.id === malfunctionData.device_id) {
+                    return new Device(
+                        device.id,
+                        device.key,
+                        device.name,
+                        malfunctionData.malfunction_type === "motion_sensor"
+                            ? SensorStatus.SENSOR_MALFUNCTION
+                            : device.motion_sensor,
+                        malfunctionData.malfunction_type === "sound_sensor"
+                            ? SensorStatus.SENSOR_MALFUNCTION
+                            : device.sound_sensor,
+                        malfunctionData.malfunction_type === "fire_sensor"
+                            ? SensorStatus.SENSOR_MALFUNCTION
+                            : device.fire_sensor,
+                        malfunctionData.malfunction_type === "gas_sensor"
+                            ? SensorStatus.SENSOR_MALFUNCTION
+                            : device.gas_sensor
+                    );
+                }
+
+                return device;
+            };
+
+            const updateBusinessInstance = (business: Business): Business => {
+                if (business.id === malfunctionData.business_id) {
+                    const updatedDevices =
+                        business.devices.map(updateDeviceInstance);
+
+                    return new Business(
+                        business.id,
+                        business.key,
+                        business.name,
+                        business.address,
+                        business.lat,
+                        business.lon,
+                        updatedDevices,
+                        business.alert,
+                        business.contactName,
+                        business.contactPhone,
+                        business.contactEmail
+                    );
+                }
+                return business;
+            };
+
+            original_businesses_full.current =
+                original_businesses_full.current.map(updateBusinessInstance);
+            filtered_businesses_full.current =
+                filtered_businesses_full.current.map(updateBusinessInstance);
+
+            updateDisplayedData(page);
+        };
+
         socket.on("update-alerts", handleUpdateAlerts);
+        socket.on("update-malfunctions", handleUpdateMalfunctions);
 
         return () => {
             socket.off("update-alerts", handleUpdateAlerts);
+            socket.off("update-malfunctions", handleUpdateMalfunctions);
         };
     }, [page]);
 
