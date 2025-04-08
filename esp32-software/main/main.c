@@ -4,6 +4,8 @@
 
 #include "config_server.h"
 #include "config_storage.h"
+#include "current_monitor.h"
+#include "driver/i2c.h"
 #include "esp_http_server.h"
 #include "esp_log.h"
 #include "esp_wifi.h"
@@ -11,6 +13,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "gas_sensor.h"
+#include "ina219.h"
 #include "motion_sensor.h"
 #include "nvs.h"
 #include "nvs_flash.h"
@@ -37,7 +40,7 @@
 #define ENABLE_GAS_SENSOR true
 #define GAS_SENSOR_GPIO 34
 #define GAS_SENSOR_IS_DIGITAL false
-#define GAS_SENSOR_THRESHOLD 500
+#define GAS_SENSOR_THRESHOLD 1000
 #define GAS_SENSOR_TIMES_TO_TRIGGER 2
 
 /* Motion Sensor Configuration */
@@ -54,12 +57,20 @@
 #define SOUND_SENSOR_THRESHOLD -1
 #define SOUND_SENSOR_TIMES_TO_TRIGGER 3
 
+/* I2C Driver */
+#define I2C_MASTER_SCL_IO 22
+#define I2C_MASTER_SDA_IO 21
+#define I2C_MASTER_FREQ_HZ 100000
+#define I2C_MASTER_TX_BUF_DISABLE 0
+#define I2C_MASTER_RX_BUF_DISABLE 0
+
 /* Function prototypes */
 config_t* allocate_configuration();
 bool read_flash_memory(nvs_handle_t handle);
 esp_err_t boot_sequence(config_t** device_cfg);
 void print_config(config_t* config);
 esp_err_t init_sensors(config_t* device_cfg);
+esp_err_t i2c_master_init();
 
 /* Main app */
 void app_main(void) {
@@ -67,6 +78,12 @@ void app_main(void) {
 
 	if (boot_sequence(&device_cfg) != ESP_OK) return;
 	ESP_LOGI("app_main", "Boot sequence complete.");
+
+	ESP_LOGI("app_main", "Initializing I2C master...");
+	if (i2c_master_init() != ESP_OK) {
+		ESP_LOGE("app_main", "Failed to initialize I2C master. Turning off.");
+		return;
+	}
 
 	ESP_LOGI("app_main", "Initializing sensors...");
 	if (init_sensors(device_cfg) != ESP_OK) {
@@ -240,4 +257,33 @@ void print_config(config_t* config) {
 	ESP_LOGI(TAG, "Sound sensor: %s", (config->sound) ? "active" : "not active");
 	ESP_LOGI(TAG, "Gas sensor: %s", (config->gas) ? "active" : "not active");
 	ESP_LOGI(TAG, "Fire sensor: %s", (config->fire) ? "active" : "not active");
+}
+
+esp_err_t i2c_master_init() {
+	const char* TAG = "i2c_master_init";
+
+	i2c_config_t conf = {
+		.mode = I2C_MODE_MASTER,
+		.sda_io_num = I2C_MASTER_SDA_IO,
+		.sda_pullup_en = GPIO_PULLUP_ENABLE,
+		.scl_io_num = I2C_MASTER_SCL_IO,
+		.scl_pullup_en = GPIO_PULLUP_ENABLE,
+		.master.clk_speed = I2C_MASTER_FREQ_HZ,
+	};
+
+	esp_err_t err = i2c_param_config(I2C_NUM_0, &conf);
+	if (err != ESP_OK) {
+		ESP_LOGE(TAG, "I2C param config failed: %s", esp_err_to_name(err));
+		return err;
+	}
+
+	err = i2c_driver_install(I2C_NUM_0, conf.mode, I2C_MASTER_RX_BUF_DISABLE,
+							 I2C_MASTER_TX_BUF_DISABLE, 0);
+	if (err != ESP_OK) {
+		ESP_LOGE(TAG, "I2C driver install failed: %s", esp_err_to_name(err));
+		return err;
+	}
+
+	ESP_LOGI(TAG, "I2C master initialized successfully");
+	return ESP_OK;
 }
