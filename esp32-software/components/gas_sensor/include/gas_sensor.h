@@ -20,10 +20,12 @@
  * @param times_to_trigger Number of times the sensor must trigger before the signal is considered
  * valid.
  * @param device_cfg Pointer to the device configuration structure.
+ * @param monitor_i2c_addr I2C address of the current monitor (used for power consumption
+ * monitoring).
  *
  * @return ESP_OK on success, ESP_ERR_NO_MEM if memory allocation fails.
  */
 esp_err_t init_gas_sensor(int gpio, bool is_digital, int treshold, int times_to_trigger,
-						  config_t* device_cfg);
+						  config_t* device_cfg, uint8_t monitor_i2c_addr);
 
 #endif

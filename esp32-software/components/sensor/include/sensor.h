@@ -7,6 +7,7 @@
 #include "config_storage.h"
 #include "driver/gpio.h"
 #include "esp_adc/adc_oneshot.h"
+#include "ina219.h"
 
 typedef struct sensor {
 	gpio_num_t gpio;
@@ -18,6 +19,8 @@ typedef struct sensor {
 	int reset_ticks_count;
 
 	config_t* device_cfg;
+
+	ina219_dev_t current_monitor;
 
 	adc_channel_t adc_channel;
 } Sensor;
@@ -34,10 +37,11 @@ typedef struct sensor {
  * valid.
  * @param required_reset_ticks Number of ticks required to reset the sensor trigger.
  * @param device_cfg Pointer to the device configuration structure.
+ * @param current_monitor INA219 device handle for current monitoring.
  * @return Pointer to the initialized Sensor structure, or NULL on failure.
  */
 Sensor* init_sensor(gpio_num_t gpio, bool is_digital, int treshold, int times_to_trigger,
-					int required_reset_ticks, config_t* device_cfg);
+					int required_reset_ticks, config_t* device_cfg, ina219_dev_t current_monitor);
 
 /**
  * @brief Reads the signal from the sensor.
