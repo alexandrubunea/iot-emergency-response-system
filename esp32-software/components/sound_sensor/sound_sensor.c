@@ -16,7 +16,21 @@ static void sound_sensor_event(void* pvParameters) {
 	Sensor* sound_sensor = (Sensor*)pvParameters;
 
 	while (true) {
-		if (read_signal(sound_sensor)) {
+		int value = read_signal(sound_sensor);
+		current_monitor_data current_data;
+
+		esp_err_t err = read_current_monitor_data(&sound_sensor->current_monitor, &current_data);
+		if (err != ESP_OK) {
+			ESP_LOGE(TAG, "Failed to read current monitor data: %s", esp_err_to_name(err));
+			continue;
+		}
+
+		// ESP_LOGI(TAG, "Bus Voltage: %d mV", current_data.bus_voltage_mv);
+		// ESP_LOGI(TAG, "Shunt Voltage: %d uV", current_data.shunt_voltage_uv);
+		// ESP_LOGI(TAG, "Current: %.2f mA", current_data.current_ma);
+		// ESP_LOGI(TAG, "Power: %.2f mW", current_data.power_mw);
+
+		if (value) {
 			sound_sensor->times_triggered++;
 			ESP_LOGI(TAG, "Sound detected. Times triggered: %d", sound_sensor->times_triggered);
 
@@ -34,7 +48,6 @@ static void sound_sensor_event(void* pvParameters) {
 
 			if (sound_sensor->reset_ticks_count >= sound_sensor->required_reset_ticks) {
 				ESP_LOGI(TAG, "Inactivity detected. Resetting sensor trigger.");
-
 				sound_sensor->reset_ticks_count = 0;
 				sound_sensor->times_triggered = 0;
 			}
@@ -50,7 +63,7 @@ esp_err_t init_sound_sensor(int gpio, bool is_digital, int treshold, int times_t
 
 	esp_err_t err = init_current_monitor(&current_monitor, monitor_i2c_addr);
 	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "Failed to initialize current monitor for gas sensor.");
+		ESP_LOGE(TAG, "Failed to initialize current monitor for sound sensor.");
 		return err;
 	}
 

@@ -7,7 +7,7 @@
 #define INA219_SHUNT_LSB_UV 10
 #define INA219_BUS_VOLTAGE_LSB_MV 4
 
-static const char *TAG = "current_monitor";
+static const char *TAG = "ina219";
 
 static esp_err_t ina219_write_register(ina219_dev_t *dev, uint8_t reg_addr, uint16_t value) {
 	uint8_t buffer[3];

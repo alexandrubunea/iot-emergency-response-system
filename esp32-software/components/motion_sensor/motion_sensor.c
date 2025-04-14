@@ -16,7 +16,21 @@ static void motion_sensor_event(void* pvParameters) {
 	Sensor* motion_sensor = (Sensor*)pvParameters;
 
 	while (true) {
-		if (read_signal(motion_sensor)) {
+		int value = read_signal(motion_sensor);
+		current_monitor_data current_data;
+
+		esp_err_t err = read_current_monitor_data(&motion_sensor->current_monitor, &current_data);
+		if (err != ESP_OK) {
+			ESP_LOGE(TAG, "Failed to read current monitor data: %s", esp_err_to_name(err));
+			continue;
+		}
+
+		// ESP_LOGI(TAG, "Bus Voltage: %d mV", current_data.bus_voltage_mv);
+		// ESP_LOGI(TAG, "Shunt Voltage: %d uV", current_data.shunt_voltage_uv);
+		// ESP_LOGI(TAG, "Current: %.2f mA", current_data.current_ma);
+		// ESP_LOGI(TAG, "Power: %.2f mW", current_data.power_mw);
+
+		if (value) {
 			motion_sensor->times_triggered++;
 			ESP_LOGI(TAG, "Motion detected. Times triggered: %d", motion_sensor->times_triggered);
 
@@ -25,7 +39,7 @@ static void motion_sensor_event(void* pvParameters) {
 						 motion_sensor->times_to_trigger);
 				motion_sensor->times_triggered = 0;
 
-				send_alert(motion_sensor->device_cfg->api_key, "motion_alert", "");
+				send_alert(motion_sensor->device_cfg->api_key, "motion_alert", NULL);
 			}
 		}
 
@@ -34,13 +48,12 @@ static void motion_sensor_event(void* pvParameters) {
 
 			if (motion_sensor->reset_ticks_count >= motion_sensor->required_reset_ticks) {
 				ESP_LOGI(TAG, "Inactivity detected. Resetting sensor trigger.");
-
 				motion_sensor->reset_ticks_count = 0;
 				motion_sensor->times_triggered = 0;
 			}
 		}
 
-		vTaskDelay(500 / portTICK_PERIOD_MS);
+		vTaskDelay(100 / portTICK_PERIOD_MS);
 	}
 }
 
@@ -50,7 +63,7 @@ esp_err_t init_motion_sensor(int gpio, bool is_digital, int treshold, int times_
 
 	esp_err_t err = init_current_monitor(&current_monitor, monitor_i2c_addr);
 	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "Failed to initialize current monitor for gas sensor.");
+		ESP_LOGE(TAG, "Failed to initialize current monitor for motion sensor.");
 		return err;
 	}
 

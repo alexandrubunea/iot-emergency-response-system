@@ -98,24 +98,24 @@ void app_main(void) {
 }
 
 esp_err_t init_sensors(config_t* device_cfg) {
-	// if (ENABLE_MOTION_SENSOR &&
-	// 	init_motion_sensor(MOTION_SENSOR_GPIO, MOTION_SENSOR_IS_DIGITAL, MOTION_SENSOR_THRESHOLD,
-	// 					   MOTION_SENSOR_TIMES_TO_TRIGGER, device_cfg, 0x43) != ESP_OK) {
-	// 	send_malfunction(device_cfg->api_key, "motion_sensor",
-	// 					 "Failed to initialize motion sensor.");
+	if (ENABLE_MOTION_SENSOR &&
+		init_motion_sensor(MOTION_SENSOR_GPIO, MOTION_SENSOR_IS_DIGITAL, MOTION_SENSOR_THRESHOLD,
+						   MOTION_SENSOR_TIMES_TO_TRIGGER, device_cfg, 0x45) != ESP_OK) {
+		send_malfunction(device_cfg->api_key, "motion_sensor",
+						 "Failed to initialize motion sensor.");
 
-	// 	ESP_LOGE("init_sensors", "Failed to initialize motion sensor. Turning off.");
-	// 	return ESP_FAIL;
-	// }
+		ESP_LOGE("init_sensors", "Failed to initialize motion sensor. Turning off.");
+		return ESP_FAIL;
+	}
 
-	// if (ENABLE_SOUND_SENSOR &&
-	// 	init_sound_sensor(SOUND_SENSOR_GPIO, SOUND_SENSOR_IS_DIGITAL, SOUND_SENSOR_THRESHOLD,
-	// 					  SOUND_SENSOR_TIMES_TO_TRIGGER, device_cfg, 0x42) != ESP_OK) {
-	// 	send_malfunction(device_cfg->api_key, "sound_sensor", "Failed to initialize sound sensor.");
+	if (ENABLE_SOUND_SENSOR &&
+		init_sound_sensor(SOUND_SENSOR_GPIO, SOUND_SENSOR_IS_DIGITAL, SOUND_SENSOR_THRESHOLD,
+						  SOUND_SENSOR_TIMES_TO_TRIGGER, device_cfg, 0x41) != ESP_OK) {
+		send_malfunction(device_cfg->api_key, "sound_sensor", "Failed to initialize sound sensor.");
 
-	// 	ESP_LOGE("init_sensors", "Failed to initialize sound sensor. Turning off.");
-	// 	return ESP_FAIL;
-	// }
+		ESP_LOGE("init_sensors", "Failed to initialize sound sensor. Turning off.");
+		return ESP_FAIL;
+	}
 
 	if (ENABLE_FIRE_SENSOR &&
 		init_fire_sensor(FIRE_SENSOR_GPIO, FIRE_SENSOR_IS_DIGITAL, FIRE_SENSOR_THRESHOLD,
@@ -126,14 +126,14 @@ esp_err_t init_sensors(config_t* device_cfg) {
 		return ESP_FAIL;
 	}
 
-	// if (ENABLE_GAS_SENSOR &&
-	// 	init_gas_sensor(GAS_SENSOR_GPIO, GAS_SENSOR_IS_DIGITAL, GAS_SENSOR_THRESHOLD,
-	// 					GAS_SENSOR_TIMES_TO_TRIGGER, device_cfg, 0x41) != ESP_OK) {
-	// 	send_malfunction(device_cfg->api_key, "gas_sensor", "Failed to initialize gas sensor.");
+	if (ENABLE_GAS_SENSOR &&
+		init_gas_sensor(GAS_SENSOR_GPIO, GAS_SENSOR_IS_DIGITAL, GAS_SENSOR_THRESHOLD,
+						GAS_SENSOR_TIMES_TO_TRIGGER, device_cfg, 0x44) != ESP_OK) {
+		send_malfunction(device_cfg->api_key, "gas_sensor", "Failed to initialize gas sensor.");
 
-	// 	ESP_LOGE("init_sensors", "Failed to initialize gas sensor. Turning off.");
-	// 	return ESP_FAIL;
-	// }
+		ESP_LOGE("init_sensors", "Failed to initialize gas sensor. Turning off.");
+		return ESP_FAIL;
+	}
 
 	return ESP_OK;
 }

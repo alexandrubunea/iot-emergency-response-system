@@ -17,8 +17,20 @@ static void gas_sensor_event(void* pvParameters) {
 
 	while (true) {
 		int value = read_signal(gas_sensor);
+		current_monitor_data current_data;
 
-		if (value != -1 && value >= gas_sensor->treshold) {
+		esp_err_t err = read_current_monitor_data(&gas_sensor->current_monitor, &current_data);
+		if (err != ESP_OK) {
+			ESP_LOGE(TAG, "Failed to read current monitor data: %s", esp_err_to_name(err));
+			continue;
+		}
+
+		// ESP_LOGI(TAG, "Bus Voltage: %d mV", current_data.bus_voltage_mv);
+		// ESP_LOGI(TAG, "Shunt Voltage: %d uV", current_data.shunt_voltage_uv);
+		// ESP_LOGI(TAG, "Current: %.2f mA", current_data.current_ma);
+		// ESP_LOGI(TAG, "Power: %.2f mW", current_data.power_mw);
+
+		if (value != -1 && value <= gas_sensor->treshold) {
 			gas_sensor->times_triggered++;
 			ESP_LOGI(TAG, "Gas detected. Times triggered: %d", gas_sensor->times_triggered);
 
@@ -41,7 +53,7 @@ static void gas_sensor_event(void* pvParameters) {
 			}
 		}
 
-		vTaskDelay(2017 / portTICK_PERIOD_MS);
+		vTaskDelay(500 / portTICK_PERIOD_MS);
 	}
 }
 

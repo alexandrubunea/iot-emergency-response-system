@@ -26,10 +26,10 @@ static void fire_sensor_event(void* pvParameters) {
 			continue;
 		}
 
-		ESP_LOGI(TAG, "Bus Voltage: %d mV", current_data.bus_voltage_mv);
-		ESP_LOGI(TAG, "Shunt Voltage: %d uV", current_data.shunt_voltage_uv);
-		ESP_LOGI(TAG, "Current: %.2f mA", current_data.current_ma);
-		ESP_LOGI(TAG, "Power: %.2f mW", current_data.power_mw);
+		// ESP_LOGI(TAG, "Bus Voltage: %d mV", current_data.bus_voltage_mv);
+		// ESP_LOGI(TAG, "Shunt Voltage: %d uV", current_data.shunt_voltage_uv);
+		// ESP_LOGI(TAG, "Current: %.2f mA", current_data.current_ma);
+		// ESP_LOGI(TAG, "Power: %.2f mW", current_data.power_mw);
 
 		if (value != -1 && value <= fire_sensor->treshold) {
 			fire_sensor->times_triggered++;
@@ -54,7 +54,7 @@ static void fire_sensor_event(void* pvParameters) {
 			}
 		}
 
-		vTaskDelay(521 / portTICK_PERIOD_MS);
+		vTaskDelay(500 / portTICK_PERIOD_MS);
 	}
 }
 
