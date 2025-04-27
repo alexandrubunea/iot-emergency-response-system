@@ -942,3 +942,260 @@ def solve_business_malfunctions(business_id: int):
         )
     finally:
         DatabaseManager.release_connection(connection)
+
+
+@dashboard_bp.route("/api/stats", methods=["GET"])
+@validate_auth_header(required_access_level=0)
+def get_dashboard_stats():
+    """
+    Retrieves various statistics for the dashboard display.
+
+    Fetches counts for total clients (businesses), active devices,
+    recent unresolved alerts (past 7 days), unresolved motion alerts,
+    unresolved fire alerts, and recent unresolved device malfunctions (past 30 days).
+
+    Returns:
+        Response: A JSON response containing the dashboard statistics or an error message.
+    """
+    logger.info("Attempting to fetch dashboard statistics.")
+
+    connection = None
+    stats = {}
+
+    try:
+        connection = DatabaseManager.get_connection()
+
+        with connection.cursor() as cur:
+            query = sql.SQL(
+                """
+                SELECT
+                    (SELECT COUNT(*) FROM businesses) AS total_clients,
+                    (SELECT COUNT(*) FROM security_devices) AS active_devices,
+                    (SELECT COUNT(*) FROM alerts
+                     WHERE alert_time >= NOW() - INTERVAL '7 days') AS recent_alerts,
+                    (SELECT COUNT(*) FROM alerts
+                     WHERE alert_type = {motion_type}) AS total_intrusions,
+                    (SELECT COUNT(*) FROM alerts
+                     WHERE alert_type = {fire_type}) AS total_fires,
+                    (SELECT COUNT(*) FROM malfunctions
+                     WHERE malfunction_time >= NOW() - INTERVAL '30 days') AS recent_malfunctions;
+            """
+            ).format(
+                motion_type=sql.Literal("motion_alert"),
+                fire_type=sql.Literal("fire_alert"),
+            )
+
+            cur.execute(query)
+            result = cur.fetchone()
+
+            if result:
+                stats = {
+                    "clients": result[0],
+                    "activeDevices": result[1],
+                    "alerts": result[2],
+                    "detectedIntruders": result[3],
+                    "detectedFires": result[4],
+                    "deviceMalfunctions": result[5],
+                }
+                logger.info("Successfully fetched dashboard statistics: %s", stats)
+                return jsonify({"status": "success", "data": stats}), 200
+
+            logger.warning("Dashboard statistics query returned no results.")
+            return (
+                jsonify(
+                    {"status": "error", "message": "Could not retrieve statistics"}
+                ),
+                500,
+            )
+
+    except (psycopg2.Error, ConnectionError) as e:
+        logger.error(
+            "Database error fetching dashboard statistics: %s", e, exc_info=True
+        )
+        if connection:
+            try:
+                connection.rollback()
+            except psycopg2.Error as rb_e:
+                logger.error("Error during rollback: %s", rb_e)
+        return (
+            jsonify(
+                {"status": "error", "message": "Error fetching dashboard statistics"}
+            ),
+            500,
+        )
+    except Exception as e:
+        logger.error(
+            "An unexpected error occurred fetching stats: %s", e, exc_info=True
+        )
+        return (
+            jsonify(
+                {"status": "error", "message": "An internal server error occurred"}
+            ),
+            500,
+        )
+    finally:
+        DatabaseManager.release_connection(connection)
+
+
+@dashboard_bp.route("/api/alerts_over_time", methods=["GET"])
+@validate_auth_header(required_access_level=0)
+@validate_json_payload("range")
+def get_graph_alert_data():
+    """
+    Provides aggregated alert data (motion and fire) over a specified time range
+    suitable for plotting on a graph.
+
+    Query Parameters:
+        range (str): The time range for the data. Accepted values:
+                     '24h', '1w', '1m', '6m', '1y'. Default: '1m'.
+
+    Returns:
+        Response: A JSON response containing labels and datasets for the graph,
+                  or an error message.
+    """
+    time_range = request.json.get("range")
+    logger.info("Fetching alert data for graph. Range: %s", time_range)
+
+    interval_sql = None
+    start_time_sql = None
+    label_format_sql = None
+    end_time_sql = "NOW()"
+
+    time_range_config = {
+        "24h": {
+            "interval_sql": "INTERVAL '1 hour'",
+            "start_time_sql": "NOW() - INTERVAL '24 hours'",
+            "label_format_sql": "YYYY-MM-DD HH24:00",
+        },
+        "1w": {
+            "interval_sql": "INTERVAL '1 day'",
+            "start_time_sql": "NOW() - INTERVAL '7 days'",
+            "label_format_sql": "YYYY-MM-DD",
+        },
+        "1m": {
+            "interval_sql": "INTERVAL '1 day'",
+            "start_time_sql": "NOW() - INTERVAL '1 month'",
+            "label_format_sql": "YYYY-MM-DD",
+        },
+        "6m": {
+            "interval_sql": "INTERVAL '1 week'",
+            "start_time_sql": "NOW() - INTERVAL '6 months'",
+            "label_format_sql": "YYYY-MM-DD",
+        },
+        "1y": {
+            "interval_sql": "INTERVAL '1 month'",
+            "start_time_sql": "NOW() - INTERVAL '1 year'",
+            "label_format_sql": "YYYY-MM",
+        },
+    }
+
+    if time_range in time_range_config:
+        config = time_range_config[time_range]
+        interval_sql = config["interval_sql"]
+        start_time_sql = config["start_time_sql"]
+        label_format_sql = config["label_format_sql"]
+    else:
+        logger.warning("Invalid time range specified: %s", time_range)
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": "Invalid time range. Use '24h', '1w', '1m', '6m', or '1y'.",
+                }
+            ),
+            400,
+        )
+
+    connection = None
+    graph_data = {
+        "labels": [],
+        "datasets": [
+            {"label": "Detected Fires", "data": []},
+            {"label": "Detected Intruders", "data": []},
+        ],
+    }
+
+    try:
+        connection = DatabaseManager.get_connection()
+
+        with connection.cursor() as cur:
+            trunc_interval = (
+                "hour"
+                if time_range == "24h"
+                else (
+                    "day"
+                    if time_range in ["1w", "1m"]
+                    else "week" if time_range == "6m" else "month"
+                )
+            )
+
+            final_query = sql.SQL(
+                """
+                WITH time_series AS (
+                    SELECT generate_series(
+                        date_trunc({interval_name}, {start_time}),
+                        {end_time},
+                        {interval_step}
+                    )::timestamp AS time_bucket
+                )
+                SELECT
+                    to_char(ts.time_bucket, {label_format}) AS label,
+                    COALESCE(SUM(CASE WHEN a.alert_type = {fire_type}
+                    THEN 1 ELSE 0 END), 0) AS fire_count,
+                    COALESCE(SUM(CASE WHEN a.alert_type = {motion_type}
+                    THEN 1 ELSE 0 END), 0) AS motion_count
+                FROM time_series ts
+                LEFT JOIN alerts a ON
+                date_trunc({interval_name}, a.alert_time) = ts.time_bucket
+                    AND a.alert_type IN ({fire_type}, {motion_type})
+                    AND a.alert_time >= {start_time}
+                WHERE ts.time_bucket >= date_trunc({interval_name}, {start_time})
+                  AND ts.time_bucket <= {end_time}
+                GROUP BY ts.time_bucket
+                ORDER BY ts.time_bucket;
+            """
+            ).format(
+                interval_name=sql.Literal(trunc_interval),
+                interval_step=sql.SQL(interval_sql),
+                start_time=sql.SQL(start_time_sql),
+                end_time=sql.SQL(end_time_sql),
+                label_format=sql.Literal(label_format_sql),
+                fire_type=sql.Literal("fire_alert"),
+                motion_type=sql.Literal("motion_alert"),
+            )
+
+            logger.debug("Executing graph query: %s", final_query.as_string(cur))
+            cur.execute(final_query)
+            results = cur.fetchall()
+
+            for row in results:
+                graph_data["labels"].append(row[0])
+                graph_data["datasets"][0]["data"].append(row[1])
+                graph_data["datasets"][1]["data"].append(row[2])
+
+            logger.info("Successfully fetched %d data points for graph.", len(results))
+            return jsonify({"status": "success", "data": graph_data}), 200
+
+    except (psycopg2.Error, ConnectionError) as e:
+        logger.error("Database error fetching graph data: %s", e, exc_info=True)
+        if connection:
+            try:
+                connection.rollback()
+            except psycopg2.Error as rb_e:
+                logger.error("Error during rollback: %s", rb_e)
+        return (
+            jsonify({"status": "error", "message": "Error fetching graph data"}),
+            500,
+        )
+    except Exception as e:
+        logger.error(
+            "An unexpected error occurred fetching graph data: %s", e, exc_info=True
+        )
+        return (
+            jsonify(
+                {"status": "error", "message": "An internal server error occurred"}
+            ),
+            500,
+        )
+    finally:
+        DatabaseManager.release_connection(connection)
