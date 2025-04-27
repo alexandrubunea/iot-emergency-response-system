@@ -47,7 +47,6 @@ function Sidebar({
                 },
             ],
         },
-        { name: "Settings", icon: "fa-gears", view: "Settings" },
     ];
 
     const [openDropdowns, setOpenDropdowns] = useState<{

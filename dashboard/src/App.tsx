@@ -5,7 +5,6 @@ import Home from "./views/Home";
 import Map from "./views/Map";
 import Businesses from "./views/Businesses";
 import Employees from "./views/Employees";
-import Settings from "./views/Settings";
 import Alerts from "./views/LogsView/Alerts";
 import Malfunctions from "./views/LogsView/Malfunctions";
 import Other from "./views/LogsView/Other";
@@ -30,8 +29,6 @@ function App() {
                 return <Businesses />;
             case "Employees":
                 return <Employees />;
-            case "Settings":
-                return <Settings />;
             case "Logs/Alerts":
                 return <Alerts />;
             case "Logs/Malfunctions":
