@@ -16,7 +16,7 @@ const static char* TAG = "fire_sensor";
 static void fire_sensor_event(void* pvParameters) {
 	Sensor* fire_sensor = (Sensor*)pvParameters;
 
-	while (fire_sensor->device_cfg->fire) {
+	while (true) {
 		int value = read_signal(fire_sensor);
 		current_monitor_data current_data;
 
@@ -26,10 +26,25 @@ static void fire_sensor_event(void* pvParameters) {
 			continue;
 		}
 
-		// ESP_LOGI(TAG, "Bus Voltage: %d mV", current_data.bus_voltage_mv);
-		// ESP_LOGI(TAG, "Shunt Voltage: %d uV", current_data.shunt_voltage_uv);
-		// ESP_LOGI(TAG, "Current: %.2f mA", current_data.current_ma);
-		// ESP_LOGI(TAG, "Power: %.2f mW", current_data.power_mw);
+		if (current_data.power_mw < 7.50) {
+			ESP_LOGI(TAG, "Power consumption is too low. Sensor might be malfunctioning.");
+			send_malfunction(fire_sensor->device_cfg->api_key, "fire_sensor",
+							 "Power consumption is too low. Sensor might be malfunctioning.");
+
+			vTaskDelay(5000 / portTICK_PERIOD_MS);
+
+			continue;
+		}
+
+		if (current_data.current_ma < 1.50) {
+			ESP_LOGI(TAG, "Current consumption is too low. Sensor might be malfunctioning.");
+			send_malfunction(fire_sensor->device_cfg->api_key, "fire_sensor",
+							 "Current consumption is too low. Sensor might be malfunctioning.");
+
+			vTaskDelay(5000 / portTICK_PERIOD_MS);
+
+			continue;
+		}
 
 		if (value != -1 && value <= fire_sensor->treshold) {
 			fire_sensor->times_triggered++;

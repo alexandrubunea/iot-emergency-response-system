@@ -25,10 +25,25 @@ static void sound_sensor_event(void* pvParameters) {
 			continue;
 		}
 
-		// ESP_LOGI(TAG, "Bus Voltage: %d mV", current_data.bus_voltage_mv);
-		// ESP_LOGI(TAG, "Shunt Voltage: %d uV", current_data.shunt_voltage_uv);
-		// ESP_LOGI(TAG, "Current: %.2f mA", current_data.current_ma);
-		// ESP_LOGI(TAG, "Power: %.2f mW", current_data.power_mw);
+		if (current_data.power_mw < 20.00) {
+			ESP_LOGI(TAG, "Power consumption is too low. Sensor might be malfunctioning.");
+			send_malfunction(sound_sensor->device_cfg->api_key, "sound_sensor",
+							 "Power consumption is too low. Sensor might be malfunctioning.");
+
+			vTaskDelay(5000 / portTICK_PERIOD_MS);
+
+			continue;
+		}
+
+		if (current_data.current_ma < 5.00) {
+			ESP_LOGI(TAG, "Current consumption is too low. Sensor might be malfunctioning.");
+			send_malfunction(sound_sensor->device_cfg->api_key, "sound_sensor",
+							 "Current consumption is too low. Sensor might be malfunctioning.");
+
+			vTaskDelay(5000 / portTICK_PERIOD_MS);
+
+			continue;
+		}
 
 		if (value) {
 			sound_sensor->times_triggered++;

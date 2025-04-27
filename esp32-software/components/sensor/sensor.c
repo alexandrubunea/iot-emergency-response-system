@@ -68,6 +68,8 @@ Sensor* init_sensor(gpio_num_t gpio, bool is_digital, int treshold, int times_to
 	sensor->required_reset_ticks = required_reset_ticks;
 	sensor->reset_ticks_count = 0;
 	sensor->current_monitor = current_monitor;
+	sensor->start_tick = 0;
+	sensor->is_warmed_up = false;
 
 	if (is_digital && gpio_set_direction(sensor->gpio, GPIO_MODE_INPUT) != ESP_OK) {
 		ESP_LOGE(TAG, "Failed to set GPIO direction.");

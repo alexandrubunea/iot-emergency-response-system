@@ -17,18 +17,9 @@ static void motion_sensor_event(void* pvParameters) {
 
 	while (true) {
 		int value = read_signal(motion_sensor);
-		current_monitor_data current_data;
 
-		esp_err_t err = read_current_monitor_data(&motion_sensor->current_monitor, &current_data);
-		if (err != ESP_OK) {
-			ESP_LOGE(TAG, "Failed to read current monitor data: %s", esp_err_to_name(err));
-			continue;
-		}
-
-		// ESP_LOGI(TAG, "Bus Voltage: %d mV", current_data.bus_voltage_mv);
-		// ESP_LOGI(TAG, "Shunt Voltage: %d uV", current_data.shunt_voltage_uv);
-		// ESP_LOGI(TAG, "Current: %.2f mA", current_data.current_ma);
-		// ESP_LOGI(TAG, "Power: %.2f mW", current_data.power_mw);
+		// Even if the reading of the current is possible, the motion sensor is passive and
+		// there is no constant current consumption. So reading the current is not necessary.
 
 		if (value) {
 			motion_sensor->times_triggered++;
@@ -53,7 +44,7 @@ static void motion_sensor_event(void* pvParameters) {
 			}
 		}
 
-		vTaskDelay(100 / portTICK_PERIOD_MS);
+		vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
 }
 

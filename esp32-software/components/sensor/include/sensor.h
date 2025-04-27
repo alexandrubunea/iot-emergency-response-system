@@ -23,6 +23,9 @@ typedef struct sensor {
 	ina219_dev_t current_monitor;
 
 	adc_channel_t adc_channel;
+
+	TickType_t start_tick;
+	bool is_warmed_up;
 } Sensor;
 
 /**
