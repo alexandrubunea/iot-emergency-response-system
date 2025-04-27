@@ -36,7 +36,6 @@ function BusinessRow({ business, onRemove }: BusinessRowProps) {
     useEffect(() => {
         setMalfunctionStatus(business.anyBrokenDevice());
         setAlertStatus(business.alert);
-        setDevices(business.devices);
     }, [business]);
 
     const showConfirmation = () =>

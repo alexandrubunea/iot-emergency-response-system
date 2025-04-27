@@ -17,12 +17,17 @@ import {
     getMalfunctions,
     getDeviceLogs,
 } from "./routes/businessRoutes.js";
-import { deleteDevice, solveAlert, solveMalfunction } from "./routes/deviceRoutes.js";
+import {
+    deleteDevice,
+    solveAlert,
+    solveMalfunction,
+} from "./routes/deviceRoutes.js";
 import {
     addEmployee,
     deleteEmployee,
     getEmployees,
 } from "./routes/employeeRoutes.js";
+import { fetchAlertsOverTime, fetchStats } from "./routes/statsRoutes.js";
 
 dotenv.config();
 
@@ -115,6 +120,9 @@ app.delete("/api/employees/:id", deleteEmployee);
 
 app.post("/api/solve_alert/:id", solveAlert);
 app.post("/api/solve_malfunction/:id", solveMalfunction);
+
+app.get("/api/stats", fetchStats);
+app.get("/api/alerts_over_time/:range", fetchAlertsOverTime);
 
 app.get("*", (_: Request, res: Response) => {
     res.sendFile(path.join(__dirname, "dist", "index.html"));
