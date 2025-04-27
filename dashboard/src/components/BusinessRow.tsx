@@ -9,6 +9,7 @@ import { Device } from "../models/Device";
 import BusinessRowTitle from "./BusinessRowTitle";
 import { sweetAlert } from "../utils/ui";
 import DeleteButton from "./DeleteButton";
+import { SensorStatus } from "../types/Device";
 
 type BusinessRowProps = {
     business: Business;
@@ -35,6 +36,7 @@ function BusinessRow({ business, onRemove }: BusinessRowProps) {
     useEffect(() => {
         setMalfunctionStatus(business.anyBrokenDevice());
         setAlertStatus(business.alert);
+        setDevices(business.devices);
     }, [business]);
 
     const showConfirmation = () =>
@@ -102,6 +104,19 @@ function BusinessRow({ business, onRemove }: BusinessRowProps) {
 
     const malfunctionReset = () => {
         setMalfunctionStatus(false);
+        setDevices(
+            devices.map((device) => {
+                return new Device(
+                    device.id,
+                    device.key,
+                    device.name,
+                    SensorStatus.SENSOR_HEALTHY,
+                    SensorStatus.SENSOR_HEALTHY,
+                    SensorStatus.SENSOR_HEALTHY,
+                    SensorStatus.SENSOR_HEALTHY
+                );
+            })
+        );
     };
 
     return (
