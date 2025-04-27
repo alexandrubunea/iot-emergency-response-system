@@ -83,3 +83,11 @@
 .leaflet-popup-close-button {
     display: none !important;
 }
+
+.swal-confirm-button {
+    @apply bg-red-500 hover:bg-red-700 transition-colors duration-300 rounded-md uppercase text-xl;
+}
+
+.swal-cancel-button {
+    @apply bg-emerald-500 hover:bg-emerald-700 transition-colors duration-300 rounded-md uppercase text-xl;
+}

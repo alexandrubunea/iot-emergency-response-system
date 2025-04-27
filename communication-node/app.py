@@ -2,58 +2,52 @@
 Flask application for handling API requests in the communication node.
 """
 
-from flask import Flask, Response
+import logging
+import sys
+from flask import Flask
+import psycopg2
+from dotenv import load_dotenv
+
+from routes.configurator import configurator_bp
+from routes.dashboard import dashboard_bp
+from routes.device import device_bp
+from utils.db import DatabaseManager
+
+load_dotenv()
 
 app = Flask(__name__)
 
+app.register_blueprint(configurator_bp)
+app.register_blueprint(dashboard_bp)
+app.register_blueprint(device_bp)
 
-@app.route("/api/register_device", methods=["POST"])
-def register_device():
-    """
-    Registers a new device in the system.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    filename="app.log",
+)
 
-    Returns:
-        Response: A JSON response with a success status and HTTP 200 code.
-    """
-    return Response('{"status":"success"}', status=200, mimetype="application/json")
-
-
-@app.route("/api/validate_employee_auth_token", methods=["POST"])
-def validate_employee_auth_token():
-    """
-    Validates an employee authentication token.
-
-    Returns:
-        Response: A JSON response with a success status and HTTP 200 code.
-    """
-    return Response('{"status":"success"}', status=200, mimetype="application/json")
-
-
-@app.route("/api/business_exists/<business_id>", methods=["GET"])
-def business_exists(business_id):
-    """
-    Checks if a business exists in the system.
-
-    Args:
-        business_id (str): The unique identifier of the business.
-
-    Returns:
-        Response: A JSON response with a success status and HTTP 200 code.
-    """
-    print(business_id)
-    return Response('{"status":"success"}', status=200, mimetype="application/json")
-
-
-@app.route("/api/validate_device_registration", methods=["POST"])
-def validate_device_registration():
-    """
-    Validates whether a device has been successfully registered.
-
-    Returns:
-        Response: A JSON response with a success status and HTTP 200 code.
-    """
-    return Response('{"status":"success"}', status=200, mimetype="application/json")
-
+logger = logging.getLogger("app")
 
 if __name__ == "__main__":
-    app.run()
+    try:
+        DatabaseManager.initialize_pool()
+
+        # Test the connection to ensure it's working
+        connection = DatabaseManager.get_connection()
+        with DatabaseManager.get_connection().cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+        DatabaseManager.release_connection(connection)
+
+        logger.info("Database connection established successfully")
+
+    except psycopg2.Error as err:
+        logger.critical("Error occurred while connecting to the database: %s", err)
+        print(f"Error occurred while connecting to the database: \n\t{err}")
+        sys.exit(1)
+
+    finally:
+        DatabaseManager.close_all_connections()
+
+    app.run(host="0.0.0.0")

@@ -4,6 +4,7 @@
 
 #include "config_server.h"
 #include "config_storage.h"
+#include "driver/i2c.h"
 #include "esp_http_server.h"
 #include "esp_log.h"
 #include "esp_wifi.h"
@@ -15,6 +16,7 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 #include "sound_sensor.h"
+#include "utils.h"
 #include "wifi_manager.h"
 
 /* ESP32 Configuration */
@@ -25,41 +27,115 @@
 #define WIFI_AP_SSID "ESP32"
 #define WIFI_AP_PASS "admin1234"
 
+/* Fire Sensor Configuration */
+#define ENABLE_FIRE_SENSOR true
+#define FIRE_SENSOR_GPIO 35
+#define FIRE_SENSOR_IS_DIGITAL false
+#define FIRE_SENSOR_THRESHOLD 3500
+#define FIRE_SENSOR_TIMES_TO_TRIGGER 3
+
+/* Gas Sensor Configuration */
+#define ENABLE_GAS_SENSOR true
+#define GAS_SENSOR_GPIO 34
+#define GAS_SENSOR_IS_DIGITAL false
+#define GAS_SENSOR_THRESHOLD 1000
+#define GAS_SENSOR_TIMES_TO_TRIGGER 2
+
+/* Motion Sensor Configuration */
+#define ENABLE_MOTION_SENSOR true
+#define MOTION_SENSOR_GPIO 13
+#define MOTION_SENSOR_IS_DIGITAL true
+#define MOTION_SENSOR_THRESHOLD -1
+#define MOTION_SENSOR_TIMES_TO_TRIGGER 3
+
+/* Sound Sensor Configuration */
+#define ENABLE_SOUND_SENSOR true
+#define SOUND_SENSOR_GPIO 27
+#define SOUND_SENSOR_IS_DIGITAL true
+#define SOUND_SENSOR_THRESHOLD -1
+#define SOUND_SENSOR_TIMES_TO_TRIGGER 3
+
+/* I2C Driver */
+#define I2C_MASTER_SCL_IO 22
+#define I2C_MASTER_SDA_IO 21
+#define I2C_MASTER_FREQ_HZ 100000
+#define I2C_MASTER_TX_BUF_DISABLE 0
+#define I2C_MASTER_RX_BUF_DISABLE 0
+
 /* Function prototypes */
 config_t* allocate_configuration();
 bool read_flash_memory(nvs_handle_t handle);
 esp_err_t boot_sequence(config_t** device_cfg);
 void print_config(config_t* config);
+esp_err_t init_sensors(config_t* device_cfg);
+esp_err_t i2c_master_init();
 
 /* Main app */
 void app_main(void) {
 	config_t* device_cfg;
 
 	if (boot_sequence(&device_cfg) != ESP_OK) return;
+	ESP_LOGI("app_main", "Boot sequence complete.");
 
-	if (init_motion_sensor() != ESP_OK) {
-		ESP_LOGE("app_main", "Failed to initialize motion sensor. Turning off.");
+	ESP_LOGI("app_main", "Initializing I2C master...");
+	if (i2c_master_init() != ESP_OK) {
+		ESP_LOGE("app_main", "Failed to initialize I2C master. Turning off.");
 		return;
 	}
 
-	if (init_sound_sensor() != ESP_OK) {
-		ESP_LOGE("app_main", "Failed to initialize sound sensor. Turning off.");
+	ESP_LOGI("app_main", "Initializing sensors...");
+	if (init_sensors(device_cfg) != ESP_OK) {
+		ESP_LOGE("app_main", "Failed to initialize sensors. Turning off.");
 		return;
 	}
+	ESP_LOGI("app_main", "Sensors initialized.");
 
-	if (init_fire_sensor() != ESP_OK) {
-		ESP_LOGE("app_main", "Failed to initialize fire sensor. Turning off.");
-		return;
-	}
-
-	if (init_gas_sensor() != ESP_OK) {
-		ESP_LOGE("app_main", "Failed to initialize gas sensor. Turning off.");
-		return;
-	}
+	send_log(device_cfg->api_key, "esp32_boot", "Device booted successfully.");
 
 	while (true) {
-		vTaskDelay(1000 / portTICK_PERIOD_MS);
+		vTaskDelay(100 / portTICK_PERIOD_MS);
 	}
+}
+
+esp_err_t init_sensors(config_t* device_cfg) {
+	if (ENABLE_MOTION_SENSOR &&
+		init_motion_sensor(MOTION_SENSOR_GPIO, MOTION_SENSOR_IS_DIGITAL, MOTION_SENSOR_THRESHOLD,
+						   MOTION_SENSOR_TIMES_TO_TRIGGER, device_cfg, 0x45) != ESP_OK) {
+		send_malfunction(device_cfg->api_key, "motion_sensor",
+						 "Failed to initialize motion sensor.");
+
+		ESP_LOGE("init_sensors", "Failed to initialize motion sensor. Turning off.");
+		return ESP_FAIL;
+	}
+
+	if (ENABLE_SOUND_SENSOR &&
+		init_sound_sensor(SOUND_SENSOR_GPIO, SOUND_SENSOR_IS_DIGITAL, SOUND_SENSOR_THRESHOLD,
+						  SOUND_SENSOR_TIMES_TO_TRIGGER, device_cfg, 0x41) != ESP_OK) {
+		send_malfunction(device_cfg->api_key, "sound_sensor", "Failed to initialize sound sensor.");
+
+		ESP_LOGE("init_sensors", "Failed to initialize sound sensor. Turning off.");
+		return ESP_FAIL;
+	}
+
+	if (ENABLE_FIRE_SENSOR &&
+		init_fire_sensor(FIRE_SENSOR_GPIO, FIRE_SENSOR_IS_DIGITAL, FIRE_SENSOR_THRESHOLD,
+						 FIRE_SENSOR_TIMES_TO_TRIGGER, device_cfg, 0x40) != ESP_OK) {
+		send_malfunction(device_cfg->api_key, "fire_sensor", "Failed to initialize fire sensor.");
+
+		ESP_LOGE("init_sensors", "Failed to initialize fire sensor. Turning off.");
+		return ESP_FAIL;
+	}
+
+	if (ENABLE_GAS_SENSOR &&
+		init_gas_sensor(GAS_SENSOR_GPIO, GAS_SENSOR_IS_DIGITAL, GAS_SENSOR_THRESHOLD,
+						GAS_SENSOR_TIMES_TO_TRIGGER, device_cfg, 0x44) != ESP_OK) {
+		send_malfunction(device_cfg->api_key, "gas_sensor", "Failed to initialize gas sensor.");
+
+		ESP_LOGE("init_sensors", "Failed to initialize gas sensor. Turning off.");
+		return ESP_FAIL;
+	}
+
+	return ESP_OK;
 }
 
 esp_err_t boot_sequence(config_t** device_cfg) {
@@ -179,4 +255,33 @@ void print_config(config_t* config) {
 	ESP_LOGI(TAG, "Sound sensor: %s", (config->sound) ? "active" : "not active");
 	ESP_LOGI(TAG, "Gas sensor: %s", (config->gas) ? "active" : "not active");
 	ESP_LOGI(TAG, "Fire sensor: %s", (config->fire) ? "active" : "not active");
+}
+
+esp_err_t i2c_master_init() {
+	const char* TAG = "i2c_master_init";
+
+	i2c_config_t conf = {
+		.mode = I2C_MODE_MASTER,
+		.sda_io_num = I2C_MASTER_SDA_IO,
+		.sda_pullup_en = GPIO_PULLUP_ENABLE,
+		.scl_io_num = I2C_MASTER_SCL_IO,
+		.scl_pullup_en = GPIO_PULLUP_ENABLE,
+		.master.clk_speed = I2C_MASTER_FREQ_HZ,
+	};
+
+	esp_err_t err = i2c_param_config(I2C_NUM_0, &conf);
+	if (err != ESP_OK) {
+		ESP_LOGE(TAG, "I2C param config failed: %s", esp_err_to_name(err));
+		return err;
+	}
+
+	err = i2c_driver_install(I2C_NUM_0, conf.mode, I2C_MASTER_RX_BUF_DISABLE,
+							 I2C_MASTER_TX_BUF_DISABLE, 0);
+	if (err != ESP_OK) {
+		ESP_LOGE(TAG, "I2C driver install failed: %s", esp_err_to_name(err));
+		return err;
+	}
+
+	ESP_LOGI(TAG, "I2C master initialized successfully");
+	return ESP_OK;
 }

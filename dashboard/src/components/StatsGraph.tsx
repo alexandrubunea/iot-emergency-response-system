@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -9,8 +10,10 @@ import {
     Tooltip,
     Legend,
     ChartOptions,
+    ChartData,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
+import axios from "axios";
 
 ChartJS.register(
     CategoryScale,
@@ -22,135 +25,112 @@ ChartJS.register(
     Legend
 );
 
-function StatsGraph() {
-    type TimeRange = "1 Year" | "6 Months" | "1 Month" | "1 Week" | "24h";
+interface ApiDataset {
+    label: string;
+    data: number[];
+}
 
-    const getLabelsForTimeRange = (range: TimeRange) => {
-        const currentDate = new Date();
-        let labels: string[] = [];
+interface ApiResponseData {
+    labels: string[];
+    datasets: ApiDataset[];
+}
 
-        switch (range) {
-            case "1 Year":
-                for (let i = 0; i < 12; i++) {
-                    const date = new Date(currentDate);
-                    date.setMonth(currentDate.getMonth() - (11 - i));
-                    labels.push(
-                        date.toLocaleString("default", { month: "long" })
-                    );
-                }
-                break;
+interface ApiResponse {
+    status: string;
+    data?: ApiResponseData;
+    message?: string;
+}
 
-            case "6 Months":
-                for (let i = 0; i < 6; i++) {
-                    const date = new Date(currentDate);
-                    date.setMonth(currentDate.getMonth() - (5 - i));
-                    labels.push(
-                        date.toLocaleString("default", { month: "long" })
-                    );
-                }
-                break;
+type TimeRangeDisplay = "1 Year" | "6 Months" | "1 Month" | "1 Week" | "24h";
+type TimeRangeApi = "1y" | "6m" | "1m" | "1w" | "24h";
 
-            case "1 Month":
-                for (let i = 0; i < 30; i++) {
-                    const date = new Date(currentDate);
-                    date.setDate(currentDate.getDate() - (29 - i));
-                    labels.push(
-                        date.toLocaleString("default", {
-                            weekday: "short",
-                            day: "numeric",
-                        })
-                    );
-                }
-                break;
+const timeRangeMapping: Record<TimeRangeDisplay, TimeRangeApi> = {
+    "1 Year": "1y",
+    "6 Months": "6m",
+    "1 Month": "1m",
+    "1 Week": "1w",
+    "24h": "24h",
+};
 
-            case "1 Week":
-                for (let i = 0; i < 7; i++) {
-                    const date = new Date(currentDate);
-                    date.setDate(currentDate.getDate() - (6 - i));
-                    labels.push(
-                        date.toLocaleString("default", { weekday: "short" })
-                    );
-                }
-                break;
+const datasetStyles = [
+    {
+        label: "Detected Fires",
+        borderColor: "oklch(0.879 0.169 91.605)",
+        backgroundColor: "oklch(0.879 0.169 91.605)",
+        tension: 0.7,
+    },
+    {
+        label: "Detected Intruders",
+        borderColor: "oklch(0.408 0.153 2.432)",
+        backgroundColor: "oklch(0.408 0.153 2.432)",
+        tension: 0.7,
+    },
+];
 
-            case "24h":
-                for (let i = 0; i < 24; i++) {
-                    const date = new Date(currentDate);
-                    date.setHours(currentDate.getHours() - (23 - i));
-                    labels.push(
-                        date.toLocaleString("default", {
-                            hour: "numeric",
-                            hour12: true,
-                        })
-                    );
-                }
-                break;
+const fetchStatsData = async (
+    range: TimeRangeApi
+): Promise<ApiResponseData> => {
+    const API_URL = import.meta.env.VITE_EXPRESS_API_URL;
 
-            default:
-                break;
+    try {
+        const response = await axios.get<ApiResponse>(
+            `${API_URL}/api/alerts_over_time/${range}`
+        );
+
+        if (response.data.status === "success" && response.data.data) {
+            const formattedData = {
+                ...response.data.data,
+            };
+            return formattedData;
+        } else {
+            throw new Error(
+                response.data.message || "Failed to fetch stats data"
+            );
         }
+    } catch (error) {
+        console.error("Error fetching stats data:", error);
+        if (axios.isAxiosError(error)) {
+            throw new Error(
+                error.response?.data?.message ||
+                    error.message ||
+                    "Network or server error"
+            );
+        }
+        throw new Error("An unknown error occurred while fetching data.");
+    }
+};
 
-        return labels;
-    };
+function StatsGraph() {
+    const [selectedRange, setSelectedRange] =
+        useState<TimeRangeDisplay>("1 Year");
 
-    // Mock-up data, will be removed when the connection with the db will be made
-    const dataForTimeRanges: Record<TimeRange, number[][]> = {
-        "1 Year": [
-            [12, 13, 12, 10, 20, 30, 40, 50, 100, 20, 10, 5],
-            [55, 23, 24, 46, 96, 100, 99, 87, 65, 43, 12, 5],
-        ],
-        "6 Months": [
-            [15, 25, 20, 30, 40, 50],
-            [50, 60, 70, 80, 90, 100],
-        ],
-        "1 Month": [
-            [
-                10, 20, 30, 20, 53, 59, 63, 5, 64, 11, 71, 36, 81, 58, 84, 56,
-                29, 95, 7, 61, 76, 47, 55, 82, 1, 96, 23, 83, 100, 26,
-            ],
-            [
-                20, 30, 40, 10, 38, 40, 25, 58, 30, 84, 100, 27, 56, 63, 89, 47,
-                37, 92, 31, 19, 88, 76, 98, 41, 80, 21, 91, 33, 4, 61,
-            ],
-        ],
-        "1 Week": [
-            [5, 15, 20, 30, 40, 50, 60],
-            [30, 20, 10, 15, 25, 35, 45],
-        ],
-        "24h": [
-            [
-                1, 2, 3, 4, 5, 6, 7, 20, 5, 23, 23, 40, 2, 5, 12, 16, 19, 20,
-                11, 2, 3, 4, 5, 6,
-            ],
-            [
-                7, 6, 5, 4, 3, 2, 1, 15, 4, 33, 30, 25, 1, 6, 10, 15, 17, 19,
-                10, 1, 2, 3, 4, 5,
-            ],
-        ],
-    };
+    const apiRange = timeRangeMapping[selectedRange];
 
-    const [selectedRange, setSelectedRange] = useState<TimeRange>("1 Year");
+    const {
+        data: queryData,
+        isLoading,
+        isError,
+        error,
+    } = useQuery<ApiResponseData, Error>({
+        queryKey: ["statsData", apiRange],
+        queryFn: () => fetchStatsData(apiRange),
+        staleTime: 1000 * 60 * 5,
+        refetchOnWindowFocus: true,
+    });
 
-    const labels = getLabelsForTimeRange(selectedRange);
-
-    const data = {
-        labels: labels,
-        datasets: [
-            {
-                label: "Detected Fires",
-                data: dataForTimeRanges[selectedRange][0],
-                borderColor: "oklch(0.879 0.169 91.605)",
-                backgroundColor: "oklch(0.879 0.169 91.605)",
-                tension: 0.7,
-            },
-            {
-                label: "Detected Intruders",
-                data: dataForTimeRanges[selectedRange][1],
-                borderColor: "oklch(0.408 0.153 2.432)",
-                backgroundColor: "oklch(0.408 0.153 2.432)",
-                tension: 0.7,
-            },
-        ],
+    const chartData: ChartData<"line"> = {
+        labels: queryData?.labels ?? [],
+        datasets:
+            queryData?.datasets.map((apiDataset) => {
+                const style =
+                    datasetStyles.find((s) => s.label === apiDataset.label) ||
+                    {};
+                return {
+                    ...style,
+                    data: apiDataset.data,
+                    label: apiDataset.label,
+                };
+            }) ?? [],
     };
 
     const options: ChartOptions<"line"> = {
@@ -165,7 +145,7 @@ function StatsGraph() {
                     padding: 15,
                     font: {
                         size: 12,
-                        family: "'Poppins', sans-serif"
+                        family: "'Poppins', sans-serif",
                     },
                 },
             },
@@ -175,7 +155,7 @@ function StatsGraph() {
                 text: `Stats over the selected range: ${selectedRange}`,
                 font: {
                     size: 14,
-                    family: "'Poppins', sans-serif"
+                    family: "'Poppins', sans-serif",
                 },
                 padding: {
                     top: 10,
@@ -185,11 +165,11 @@ function StatsGraph() {
             tooltip: {
                 titleFont: {
                     size: 13,
-                    family: "'Poppins', sans-serif"
+                    family: "'Poppins', sans-serif",
                 },
                 bodyFont: {
                     size: 12,
-                    family: "'Poppins', sans-serif"
+                    family: "'Poppins', sans-serif",
                 },
             },
         },
@@ -201,7 +181,7 @@ function StatsGraph() {
                     autoSkip: true,
                     font: {
                         size: (ctx) => {
-                            const width = ctx.chart.width;
+                            const width = ctx?.chart?.width ?? 0;
                             return width < 400 ? 8 : width < 600 ? 10 : 12;
                         },
                     },
@@ -215,7 +195,7 @@ function StatsGraph() {
                 ticks: {
                     font: {
                         size: (ctx) => {
-                            const width = ctx.chart.width;
+                            const width = ctx?.chart?.width ?? 0;
                             return width < 400 ? 8 : width < 600 ? 10 : 12;
                         },
                     },
@@ -228,12 +208,13 @@ function StatsGraph() {
         <div className="flex flex-col w-full">
             <div className="w-full overflow-x-auto pb-2">
                 <ul className="flex flex-col md:flex-row gap-2 poppins-light min-w-max mb-3 items-center">
-                    {Object.keys(dataForTimeRanges).map((range) => (
-                        <li
-                            key={range}
-                            onClick={() => setSelectedRange(range as TimeRange)}
-                            className={`
-                                p-2 md:p-3 rounded-md hover:bg-zinc-950 hover:cursor-pointer w-full md:w-36
+                    {(Object.keys(timeRangeMapping) as TimeRangeDisplay[]).map(
+                        (range) => (
+                            <li
+                                key={range}
+                                onClick={() => setSelectedRange(range)}
+                                className={`
+                                p-2 md:p-3 rounded-md hover:bg-zinc-900 active:bg-zinc-950 hover:cursor-pointer w-full md:w-36
                                 text-center transition-colors duration-300 text-sm md:text-base
                                 ${
                                     range === selectedRange
@@ -241,15 +222,33 @@ function StatsGraph() {
                                         : "bg-zinc-900"
                                 }
                             `}
-                        >
-                            {range}
-                        </li>
-                    ))}
+                            >
+                                {range}
+                            </li>
+                        )
+                    )}
                 </ul>
             </div>
 
             <div className="w-full h-64 sm:h-80 md:h-96">
-                <Line options={options} data={data} />
+                {isLoading && (
+                    <div className="flex items-center justify-center h-full">
+                        Loading chart data...
+                    </div>
+                )}
+                {isError && (
+                    <div className="flex items-center justify-center h-full text-red-500">
+                        Error loading data: {error?.message ?? "Unknown error"}
+                    </div>
+                )}
+                {!isLoading && !isError && queryData && (
+                    <Line options={options} data={chartData} />
+                )}
+                {!isLoading && !isError && !queryData && (
+                    <div className="flex items-center justify-center h-full text-gray-500">
+                        No data available for the selected range.
+                    </div>
+                )}
             </div>
         </div>
     );

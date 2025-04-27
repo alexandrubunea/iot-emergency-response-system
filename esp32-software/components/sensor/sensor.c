@@ -7,10 +7,11 @@
 #include "driver/gpio.h"
 #include "esp_adc/adc_oneshot.h"
 #include "esp_log.h"
+#include "ina219.h"
 
 static const char* TAG = "sensor";
 
-static adc_oneshot_unit_handle_t adc_handle = NULL;	 // Make ADC handle global for the unit
+static adc_oneshot_unit_handle_t adc_handle = NULL;
 
 static esp_err_t init_analog(Sensor** sensor) {
 	if (sensor == NULL || *sensor == NULL) {
@@ -52,7 +53,8 @@ static esp_err_t init_analog(Sensor** sensor) {
 	return ESP_OK;
 }
 
-Sensor* init_sensor(gpio_num_t gpio, bool is_digital, int treshold) {
+Sensor* init_sensor(gpio_num_t gpio, bool is_digital, int treshold, int times_to_trigger,
+					int required_reset_ticks, config_t* device_cfg, ina219_dev_t current_monitor) {
 	Sensor* sensor = (Sensor*)malloc(sizeof(Sensor));
 
 	if (sensor == NULL) return NULL;
@@ -60,6 +62,14 @@ Sensor* init_sensor(gpio_num_t gpio, bool is_digital, int treshold) {
 	sensor->gpio = gpio;
 	sensor->is_digital = is_digital;
 	sensor->treshold = treshold;
+	sensor->times_triggered = 0;
+	sensor->times_to_trigger = times_to_trigger;
+	sensor->device_cfg = device_cfg;
+	sensor->required_reset_ticks = required_reset_ticks;
+	sensor->reset_ticks_count = 0;
+	sensor->current_monitor = current_monitor;
+	sensor->start_tick = 0;
+	sensor->is_warmed_up = false;
 
 	if (is_digital && gpio_set_direction(sensor->gpio, GPIO_MODE_INPUT) != ESP_OK) {
 		ESP_LOGE(TAG, "Failed to set GPIO direction.");

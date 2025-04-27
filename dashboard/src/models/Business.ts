@@ -3,30 +3,50 @@ import { SensorStatus } from "../types/Device";
 import { Device } from "./Device";
 
 export class Business implements IBusiness {
+    id: number;
+    key: string;
+
     name: string;
 
     address: string;
     lat: number;
     lon: number;
 
+    contactName: string | null;
+    contactEmail: string | null;
+    contactPhone: string | null;
+
     devices: Array<Device>;
 
     alert: boolean;
 
     constructor(
+        id: number,
+        key: string,
         name: string,
         address: string,
         lat: number,
         lon: number,
         devices: Array<Device>,
-        alert: boolean
+        alert: boolean,
+        contactName: string | null,
+        contactPhone: string | null,
+        contactEmail: string | null
     ) {
+        this.id = id;
+        this.key = key;
+
         this.name = name;
+
         this.address = address;
         this.lat = lat;
         this.lon = lon;
         this.devices = devices;
         this.alert = alert;
+
+        this.contactEmail = contactEmail;
+        this.contactName = contactName;
+        this.contactPhone = contactPhone;
     }
 
     public anyBrokenDevice(): boolean {
@@ -48,13 +68,11 @@ export class Business implements IBusiness {
             case "motion": {
                 for (let device of this.devices) {
                     if (
-                        device.motion_sensor ===
-                            SensorStatus.SENSOR_MALFUNCTION ||
-                        device.motion_sensor === SensorStatus.SENSOR_OFFLINE
+                        device.motion_sensor === SensorStatus.SENSOR_MALFUNCTION
                     ) {
                         return device.motion_sensor;
                     }
-                    if (device.motion_sensor === SensorStatus.SENSOR_ONLINE) {
+                    if (device.motion_sensor === SensorStatus.SENSOR_HEALTHY) {
                         atleastOneSensor = true;
                     }
                 }
@@ -63,13 +81,11 @@ export class Business implements IBusiness {
             case "sound": {
                 for (let device of this.devices) {
                     if (
-                        device.sound_sensor ===
-                            SensorStatus.SENSOR_MALFUNCTION ||
-                        device.sound_sensor === SensorStatus.SENSOR_OFFLINE
+                        device.sound_sensor === SensorStatus.SENSOR_MALFUNCTION
                     ) {
                         return device.sound_sensor;
                     }
-                    if (device.sound_sensor === SensorStatus.SENSOR_ONLINE) {
+                    if (device.sound_sensor === SensorStatus.SENSOR_HEALTHY) {
                         atleastOneSensor = true;
                     }
                 }
@@ -78,13 +94,11 @@ export class Business implements IBusiness {
             case "fire": {
                 for (let device of this.devices) {
                     if (
-                        device.fire_sensor ===
-                            SensorStatus.SENSOR_MALFUNCTION ||
-                        device.fire_sensor === SensorStatus.SENSOR_OFFLINE
+                        device.fire_sensor === SensorStatus.SENSOR_MALFUNCTION
                     ) {
                         return device.fire_sensor;
                     }
-                    if (device.fire_sensor === SensorStatus.SENSOR_ONLINE) {
+                    if (device.fire_sensor === SensorStatus.SENSOR_HEALTHY) {
                         atleastOneSensor = true;
                     }
                 }
@@ -92,13 +106,10 @@ export class Business implements IBusiness {
             }
             case "gas": {
                 for (let device of this.devices) {
-                    if (
-                        device.gas_sensor === SensorStatus.SENSOR_MALFUNCTION ||
-                        device.gas_sensor === SensorStatus.SENSOR_OFFLINE
-                    ) {
+                    if (device.gas_sensor === SensorStatus.SENSOR_MALFUNCTION) {
                         return device.gas_sensor;
                     }
-                    if (device.gas_sensor === SensorStatus.SENSOR_ONLINE) {
+                    if (device.gas_sensor === SensorStatus.SENSOR_HEALTHY) {
                         atleastOneSensor = true;
                     }
                 }
@@ -107,7 +118,7 @@ export class Business implements IBusiness {
         }
 
         return atleastOneSensor
-            ? SensorStatus.SENSOR_ONLINE
+            ? SensorStatus.SENSOR_HEALTHY
             : SensorStatus.SENSOR_NOT_USED;
     }
 

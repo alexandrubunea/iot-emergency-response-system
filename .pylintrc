@@ -1,0 +1,11 @@
+[SIMILARITIES]
+min-similarity-lines=20
+ignore-comments=yes
+ignore-docstrings=yes
+ignore-imports=yes
+
+[MESSAGES CONTROL]
+disable=broad-exception-caught,import-error,too-many-lines,too-many-locals
+
+[DESIGN]
+max-statements=60

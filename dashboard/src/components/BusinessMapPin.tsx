@@ -2,116 +2,286 @@ import { Marker, Popup } from "react-leaflet";
 import { Icon } from "leaflet";
 import ResetAlertButton from "./ResetAlertButton";
 import ResetMalfunctionButton from "./ResetMalfunctionButton";
-import ViewLogsButton from "./ViewLogsButton";
 import { Business } from "../models/Business";
 import { SensorStatus } from "../types/Device";
+import { useEffect, useState } from "react";
 
 type BusinessMapPinProps = {
     business: Business;
 };
 
 function BusinessMapPin({ business }: BusinessMapPinProps) {
-    const business_icon = new Icon({
-        iconUrl: "/icons/business_icon.png",
+    const IconAlert = new Icon({
+        iconUrl: `/icons/business_icon_alert.png`,
         iconSize: [32, 32],
         iconAnchor: [16, 32],
         popupAnchor: [0, -32],
     });
 
+    const IconWarning = new Icon({
+        iconUrl: `/icons/business_icon_warning.png`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32],
+    });
+
+    const IconNormal = new Icon({
+        iconUrl: `/icons/business_icon_normal.png`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32],
+    });
+
+    const getBusinessIcon = () => {
+        if (getAlertStatus) return IconAlert;
+
+        if (getMalfunctionStatus) return IconWarning;
+
+        return IconNormal;
+    };
+
     const sensors = [
         {
             name: "Motion Detection",
             value: business.getSensorStatusByType("motion"),
+            icon: "fa-person-walking",
         },
         {
             name: "Sound Detection",
             value: business.getSensorStatusByType("sound"),
+            icon: "fa-volume-high",
         },
         {
             name: "Gas Detection",
-            value: business.getSensorStatusByType("gas")
+            value: business.getSensorStatusByType("gas"),
+            icon: "fa-wind",
         },
         {
             name: "Fire Detection",
             value: business.getSensorStatusByType("fire"),
+            icon: "fa-fire",
         },
     ];
 
-    const malfunction:boolean = business.anyBrokenDevice();
+    const activeSensors = sensors.filter(
+        (sensor) => sensor.value !== SensorStatus.SENSOR_NOT_USED
+    );
+
+    const [getAlertStatus, setAlertStatus] = useState(business.alert);
+    const [getMalfunctionStatus, setMalfunctionStatus] = useState(
+        business.anyBrokenDevice()
+    );
+
+    useEffect(() => {
+        setAlertStatus(business.alert);
+        setMalfunctionStatus(business.anyBrokenDevice());
+    }
+    , [business]);
+
+    const getSensorStatusIcon = (status: SensorStatus) => {
+        switch (status) {
+            case SensorStatus.SENSOR_HEALTHY:
+                return "fa-circle-check";
+            case SensorStatus.SENSOR_MALFUNCTION:
+                return "fa-triangle-exclamation";
+            default:
+                return "";
+        }
+    };
+
+    const getSensorStatusColor = (status: SensorStatus) => {
+        switch (status) {
+            case SensorStatus.SENSOR_HEALTHY:
+                return "text-emerald-400";
+            case SensorStatus.SENSOR_MALFUNCTION:
+                return "text-amber-500";
+            default:
+                return "";
+        }
+    };
+
+    const alertReset = () => {
+        setAlertStatus(false);
+    };
+
+    const malfunctionReset = () => {
+        setMalfunctionStatus(false);
+    };
 
     return (
         <Marker
             position={[business.lat, business.lon]}
-            icon={business_icon}
+            icon={getBusinessIcon()}
         >
             <Popup>
-                <div className="p-4 bg-zinc-900 text-zinc-200 rounded-lg shadow-md poppins-medium w-64">
-                    <div className="flex flex-col mb-4">
-                        <h3 className="text-xl poppins-black">
-                            {business.name}
-                        </h3>
-                        <span className="text-xs poppins-light">
-                            Number of devices: {business.numberOfDevices()}
-                        </span>
+                <div className="p-4 bg-zinc-900 text-zinc-200 rounded-lg shadow-md poppins-medium w-72">
+                    <div
+                        className={`-m-4 mb-4 p-3 ${
+                            getAlertStatus
+                                ? "bg-red-900/70"
+                                : getMalfunctionStatus
+                                ? "bg-amber-900/50"
+                                : "bg-emerald-900/50"
+                        } rounded-t-lg`}
+                    >
+                        <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center">
+                                <i
+                                    className={`fa-solid ${
+                                        getAlertStatus
+                                            ? "fa-bell"
+                                            : getMalfunctionStatus
+                                            ? "fa-triangle-exclamation"
+                                            : "fa-building"
+                                    } mr-2 ${
+                                        getAlertStatus
+                                            ? "text-red-400"
+                                            : getMalfunctionStatus
+                                            ? "text-amber-400"
+                                            : "text-emerald-400"
+                                    }`}
+                                ></i>
+                                <h3 className="text-lg poppins-black">
+                                    {business.name}
+                                </h3>
+                            </div>
+                            <div
+                                className={`text-xs px-2 py-0.5 rounded-full ${
+                                    getAlertStatus
+                                        ? "bg-red-600"
+                                        : getMalfunctionStatus
+                                        ? "bg-amber-600"
+                                        : "bg-emerald-600"
+                                }`}
+                            >
+                                {getAlertStatus
+                                    ? "ALERT"
+                                    : getMalfunctionStatus
+                                    ? "WARNING"
+                                    : "SECURE"}
+                            </div>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                            <span className="flex items-center">
+                                <i className="fa-solid fa-shield-halved mr-1"></i>
+                                {business.numberOfDevices()} devices
+                            </span>
+                            <span className="flex items-center">
+                                <i className="fa-solid fa-location-dot mr-1"></i>
+                                ID: {business.id}
+                            </span>
+                        </div>
                     </div>
-                    <ul className="space-y-1">
-                        {sensors
-                            .filter(
-                                (sensor) =>
-                                    sensor.value !==
-                                    SensorStatus.SENSOR_NOT_USED
-                            )
-                            .map((sensor, index) => (
-                                <li key={index} className="flex items-center justify-between">
-                                    <span>{sensor.name}</span>
-                                    <span
-                                        className={
-                                            sensor.value === SensorStatus.SENSOR_ONLINE
-                                                ? "text-green-400"
-                                                : sensor.value === SensorStatus.SENSOR_MALFUNCTION
-                                                ? "text-amber-500 animate__animated animate__pulse animate__infinite"
-                                                : "text-red-400 animate__animated animate__pulse animate__infinite"
-                                        }
+
+                    {(getAlertStatus || getMalfunctionStatus) && (
+                        <div
+                            className={`mb-4 p-2 rounded ${
+                                getAlertStatus
+                                    ? "bg-red-950/50 border border-red-800"
+                                    : "bg-amber-950/50 border border-amber-800"
+                            }`}
+                        >
+                            {getAlertStatus && (
+                                <div className="text-red-400 poppins-bold flex items-center gap-2 mb-1">
+                                    <i className="fa-solid fa-bell"></i>
+                                    <span>Security Alert Triggered</span>
+                                </div>
+                            )}
+                            {getMalfunctionStatus && (
+                                <div className="text-amber-400 poppins-bold flex items-center gap-2">
+                                    <i className="fa-solid fa-triangle-exclamation"></i>
+                                    <span>Device Malfunction Detected</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="bg-zinc-800 rounded-lg mb-4">
+                        <div className="p-2 border-b border-zinc-700 flex items-center justify-between">
+                            <span className="text-sm font-medium flex items-center">
+                                <i className="fa-solid fa-diagram-project mr-2 text-zinc-500"></i>
+                                Sensor Status
+                            </span>
+                            <span className="text-xs bg-zinc-700 px-2 py-0.5 rounded-full">
+                                {activeSensors.length} active
+                            </span>
+                        </div>
+                        <ul className="p-2 space-y-1">
+                            {activeSensors.map((sensor, index) => (
+                                <li
+                                    key={index}
+                                    className="flex items-center justify-between text-sm p-1 hover:bg-zinc-700 rounded transition-colors"
+                                >
+                                    <div className="flex items-center">
+                                        <i
+                                            className={`fa-solid ${sensor.icon} mr-2 text-zinc-500`}
+                                        ></i>
+                                        {sensor.name}
+                                    </div>
+                                    <div
+                                        className={`flex items-center ${getSensorStatusColor(
+                                            sensor.value
+                                        )} ${
+                                            sensor.value ===
+                                            SensorStatus.SENSOR_MALFUNCTION
+                                                ? "animate__animated animate__pulse animate__infinite"
+                                                : ""
+                                        }`}
                                     >
-                                        {sensor.value === SensorStatus.SENSOR_ONLINE
-                                            ? "Online"
-                                            : sensor.value === SensorStatus.SENSOR_MALFUNCTION
+                                        <i
+                                            className={`fa-solid ${getSensorStatusIcon(
+                                                sensor.value
+                                            )} mr-1`}
+                                        ></i>
+                                        {sensor.value ===
+                                        SensorStatus.SENSOR_HEALTHY
+                                            ? "Healthy"
+                                            : sensor.value ===
+                                              SensorStatus.SENSOR_MALFUNCTION
                                             ? "Malfunction"
-                                            : "Offline"}
-                                    </span>
+                                            : ""}
+                                    </div>
                                 </li>
                             ))}
-                    </ul>
-                    <hr className="my-4" />
-                    <div className="flex flex-col space-y-2">
-                        {business.alert ? (
-                            <h3 className="text-red-500 poppins-black uppercase flex flex-row gap-2">
-                                <i className="fa-solid fa-land-mine-on text-2xl"></i>
-                                <span>
-                                    Property on alert. Intervention required.
-                                </span>
-                            </h3>
-                        ) : (
-                            <h3 className="text-green-500 poppins-bold flex flex-row gap-2">
-                                <i className="fa-solid fa-shield text-2xl"></i>
-                                <span>
-                                    Safe property. No action required.
-                                </span>
-                            </h3>
-                        )}
-                        {malfunction && (
-                            <h3 className="text-orange-500 poppins-black uppercase flex flex-row gap-2">
-                                <i className="fa-solid fa-bug text-2xl"></i>
-                                <span>
-                                    WARNING: A device has a malfunction.
-                                </span>
-                            </h3>
-                        )}
+                        </ul>
                     </div>
-                    <div className="mt-4 flex flex-col space-y-2 items-center">
-                        {business.alert && <ResetAlertButton />}
-                        {malfunction && <ResetMalfunctionButton />}
-                        <ViewLogsButton />
+
+                    <div className="mb-4">
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="bg-zinc-800 p-2 rounded">
+                                <div className="text-zinc-400 mb-1">
+                                    Address
+                                </div>
+                                <div className="flex items-center">
+                                    <i className="fa-solid fa-map-marker-alt mr-1 text-zinc-500"></i>
+                                    {business.address || "No address"}
+                                </div>
+                            </div>
+                            <div className="bg-zinc-800 p-2 rounded">
+                                <div className="text-zinc-400 mb-1">
+                                    Contact
+                                </div>
+                                <div className="flex items-center">
+                                    <i className="fa-solid fa-user mr-1 text-zinc-500"></i>
+                                    {business.contactName || "Not provided"}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                        {getAlertStatus && (
+                            <ResetAlertButton
+                                businessId={business.id}
+                                onReset={alertReset}
+                            />
+                        )}
+                        {getMalfunctionStatus && (
+                            <ResetMalfunctionButton
+                                bussinessId={business.id}
+                                onReset={malfunctionReset}
+                            />
+                        )}
                     </div>
                 </div>
             </Popup>
