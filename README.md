@@ -77,10 +77,16 @@ This repository is structured as a monorepo containing the following components:
 4.  **[`configurator/`](./configurator/)**: A command-line interface (CLI) tool written in Python. Used by technicians to configure new ESP32 devices by connecting to their AP mode, gathering settings, generating an API key, registering the device with the `communication-node`, and sending the configuration to the device.
     *   [Configurator README](./configurator/README.md)
 
-5.  **[`device-emulator/`](./device-emulator/)**: A CLI tool written in Python to emulate API calls from both the ESP32 devices and the configurator tool. Useful for testing the `communication-node` endpoints independently.
+5.  **[`gui-configurator/`](./gui-configurator/)**: A graphical user interface (GUI) alternative to the command-line configurator, built with Python and Tkinter. Provides a more user-friendly way to configure ESP32 devices with the same functionality as the CLI version.
+    *   [GUI Configurator README](./gui-configurator/README.md)
+
+6.  **[`device-emulator/`](./device-emulator/)**: A CLI tool written in Python to emulate API calls from both the ESP32 devices and the configurator tool. Useful for testing the `communication-node` endpoints independently.
     *   [Device Emulator README](./device-emulator/README.md)
 
-6.  **[`docs/`](./docs/)**: Contains documentation, including Mermaid diagrams illustrating system architecture and workflows.
+7.  **[`gui-device-emulator/`](./gui-device-emulator/)**: A graphical user interface (GUI) alternative to the command-line device emulator, built with Python and Tkinter. Provides a more intuitive way to test and debug API endpoints with real-time request/response logging.
+    *   [GUI Device Emulator README](./gui-device-emulator/README.md)
+
+8.  **[`docs/`](./docs/)**: Contains documentation, including Mermaid diagrams illustrating system architecture and workflows.
 
 ## Features
 
@@ -134,10 +140,10 @@ Setting up the full system involves multiple steps across the different componen
 
 ## Usage
 
-1.  **Configuration:** Use the `configurator` tool to set up new ESP32 devices.
+1.  **Configuration:** Use the `configurator` or `gui-configurator` tool to set up new ESP32 devices.
 2.  **Monitoring:** Access the `dashboard` web application URL in a browser. Log in (authentication mechanism for dashboard users TBD/not specified in READMEs) or use an admin API key.
 3.  **Dashboard:** View the status of businesses and devices, monitor incoming alerts and malfunctions in real-time, view historical logs, and manage entities.
-4.  **Testing:** Use the `device-emulator` tool to manually send test events to the `communication-node` API.
+4.  **Testing:** Use the `device-emulator` or `gui-device-emulator` tool to manually send test events to the `communication-node` API.
 
 ## Diagrams
 
