@@ -27,19 +27,7 @@ The tool guides users through authenticating, validating business information, c
 *   Python 3.x
 *   `pip` (Python package installer)
 *   Tkinter (usually comes with Python installation)
-*   `requests` library for HTTP communication
-
-## Installation
-
-1.  **Navigate to the gui-configurator directory:**
-    ```bash
-    cd path/to/iot-emergency-response-system/gui-configurator
-    ```
-2.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-    This will install the required packages.
+*   `requests` library (Install using `pip install requests` if not already present)
 
 ## Usage
 
