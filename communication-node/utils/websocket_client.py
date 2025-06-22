@@ -1,13 +1,7 @@
-# pylint: disable=wrong-import-order, wrong-import-position
-# flake8: noqa: E402
 """
 WebSocket client for sending alerts to the Express server.
 This client uses the Socket.IO library to establish a connection with the server.
 """
-
-import eventlet
-
-eventlet.monkey_patch()
 
 import os
 from threading import Lock

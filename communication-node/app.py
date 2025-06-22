@@ -1,6 +1,12 @@
+# pylint: disable=wrong-import-order, wrong-import-position
+# flake8: noqa: E402
 """
 Flask application for handling API requests in the communication node.
 """
+
+import eventlet
+
+eventlet.monkey_patch()
 
 import logging
 import sys
