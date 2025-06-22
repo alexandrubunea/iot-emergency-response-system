@@ -3,4 +3,4 @@ psycopg2-binary
 dotenv
 python-socketio
 eventlet
-uvicorn
+gunicorn
