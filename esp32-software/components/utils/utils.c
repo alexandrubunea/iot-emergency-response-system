@@ -1,6 +1,7 @@
 #include "utils.h"
 
 #include "ctype.h"
+#include "esp_crt_bundle.h"
 #include "esp_http_client.h"
 #include "esp_log.h"
 
@@ -44,6 +45,8 @@ static void send_http_request(const char* url, const char* api_key, const char* 
 	esp_http_client_config_t config = {
 		.url = url,
 		.method = HTTP_METHOD_POST,
+		.crt_bundle_attach = esp_crt_bundle_attach,
+		.skip_cert_common_name_check = false,
 		.event_handler = NULL,
 	};
 	esp_http_client_handle_t client = esp_http_client_init(&config);
@@ -96,7 +99,7 @@ static void send_event(const char* api_key, const char* type, const char* value,
 	}
 
 	char url[128];
-	snprintf(url, sizeof(url), "http://192.168.1.132:5000/api/send_%s", type);
+	snprintf(url, sizeof(url), "https://node.alexandrubunea.cloud/api/send_%s", type);
 
 	send_http_request(url, api_key, post_data);
 	free(post_data);
