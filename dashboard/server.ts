@@ -1,12 +1,10 @@
-import express, { Request, Response } from "express";
-import path from "path";
+import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import { Server, Socket } from "socket.io";
 import http from "http";
 import { v4 as uuidv4 } from "uuid";
 
-import { fileURLToPath } from "url";
 import {
     fetchAllBusinesses,
     addNewBusiness,
@@ -31,13 +29,13 @@ import { fetchAlertsOverTime, fetchStats } from "./routes/statsRoutes.js";
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
-app.use(express.static(path.join(__dirname, "dist")));
+// app.use(express.static(path.join(__dirname, "dist")));
 app.use(express.json());
 app.use(cors());
 
