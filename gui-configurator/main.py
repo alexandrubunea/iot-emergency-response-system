@@ -217,7 +217,7 @@ class EspConfiguratorApp(tk.Tk):
             self._log("[Success] Employee authentication successful!")
             self.token_validated = True
             self._set_widget_state(self.config_frame, tk.NORMAL)
-            self._set_widget_state(self.generate_summary_btn, tk.NORMAL)
+            self.generate_summary_btn.config(state=tk.NORMAL)
             self.proceed_btn.config(state=tk.DISABLED)
             self.validate_token_btn.config(state=tk.DISABLED)
             self._log("Please fill in the configuration details below.")
