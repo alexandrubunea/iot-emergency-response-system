@@ -12,6 +12,8 @@ on:
 jobs:
   build:
     runs-on: 'ubuntu-latest'
+    env:
+      VITE_EXPRESS_API_URL: ${{ secrets.VITE_EXPRESS_API_URL }}
 
     steps:
     - uses: actions/checkout@v2
