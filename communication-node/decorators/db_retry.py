@@ -3,27 +3,16 @@ Database retry decorator for API endpoints.
 Automatically retries database operations on failure.
 """
 
-import logging
-import sys
 import time
 from functools import wraps
 from flask import jsonify
 import psycopg2
 
 from utils.db import DatabaseManager
+from utils.logger_config import get_logger
 
 # Configure logging
-logger = logging.getLogger("db_retry_decorator")
-logger.setLevel(logging.INFO)
-
-stream_handler = logging.StreamHandler(sys.stderr)
-stream_handler.setLevel(logging.INFO)
-
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-stream_handler.setFormatter(formatter)
-
-if not logger.hasHandlers():
-    logger.addHandler(stream_handler)
+logger = get_logger("db_retry")
 
 
 def retry_on_db_error(max_retries=3, delay=1):

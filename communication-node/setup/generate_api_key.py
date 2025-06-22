@@ -29,28 +29,19 @@ Reading Rights Table:
 
 Lower access level numbers have more specific permissions, not necessarily higher privileges.
 """
+
 import sys
 import os
 import uuid
 import hashlib
-import logging
 import argparse
 from datetime import datetime
 from textwrap import dedent
 import psycopg2
+from utils.logger_config import get_logger
 
 # Setup logging
-logger = logging.getLogger("generate_api_key")
-logger.setLevel(logging.INFO)
-
-stream_handler = logging.StreamHandler(sys.stderr)
-stream_handler.setLevel(logging.INFO)
-
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-stream_handler.setFormatter(formatter)
-
-if not logger.hasHandlers():
-    logger.addHandler(stream_handler)
+logger = get_logger("generate_api_key")
 
 # Add parent directory to path for imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

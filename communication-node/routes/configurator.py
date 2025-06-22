@@ -3,8 +3,6 @@ Handles communication between the database and the configurator.
 Provides API endpoints for device registration and validation.
 """
 
-import logging
-import sys
 from flask import Blueprint, request, jsonify
 import psycopg2
 from psycopg2 import sql
@@ -13,19 +11,10 @@ from decorators.validate_auth import validate_auth_header
 from decorators.db_retry import retry_on_db_error
 from decorators.validate_json_payload import validate_json_payload
 from utils.db import DatabaseManager
+from utils.logger_config import get_logger
 
 # Configure logging
-logger = logging.getLogger("configurator_blueprint")
-logger.setLevel(logging.INFO)
-
-stream_handler = logging.StreamHandler(sys.stderr)
-stream_handler.setLevel(logging.INFO)
-
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-stream_handler.setFormatter(formatter)
-
-if not logger.hasHandlers():
-    logger.addHandler(stream_handler)
+logger = get_logger("configurator")
 
 # Create Blueprint
 configurator_bp = Blueprint("configurator", __name__)

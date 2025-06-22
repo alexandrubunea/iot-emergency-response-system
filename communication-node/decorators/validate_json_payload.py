@@ -3,23 +3,12 @@ Validate JSON Payload decorator for validating JSON payloads.
 Check if all the required fields exist in the JSON payload.
 """
 
-import logging
-import sys
 from functools import wraps
 from flask import request, jsonify
+from utils.logger_config import get_logger
 
 # Configure logging
-logger = logging.getLogger("validate_json_payload")
-logger.setLevel(logging.INFO)
-
-stream_handler = logging.StreamHandler(sys.stderr)
-stream_handler.setLevel(logging.INFO)
-
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-stream_handler.setFormatter(formatter)
-
-if not logger.hasHandlers():
-    logger.addHandler(stream_handler)
+logger = get_logger("validate_json_payload")
 
 
 def validate_json_payload(*required_fields):

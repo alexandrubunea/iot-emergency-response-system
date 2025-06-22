@@ -8,7 +8,6 @@ import eventlet
 
 eventlet.monkey_patch()
 
-import logging
 import sys
 from flask import Flask
 import psycopg2
@@ -18,6 +17,7 @@ from routes.configurator import configurator_bp
 from routes.dashboard import dashboard_bp
 from routes.device import device_bp
 from utils.db import DatabaseManager
+from utils.logger_config import get_logger
 
 load_dotenv()
 
@@ -27,17 +27,7 @@ app.register_blueprint(configurator_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(device_bp)
 
-logger = logging.getLogger("app")
-logger.setLevel(logging.INFO)
-
-stream_handler = logging.StreamHandler(sys.stderr)
-stream_handler.setLevel(logging.INFO)
-
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-stream_handler.setFormatter(formatter)
-
-if not logger.hasHandlers():
-    logger.addHandler(stream_handler)
+logger = get_logger("app")
 
 if __name__ == "__main__":
     try:

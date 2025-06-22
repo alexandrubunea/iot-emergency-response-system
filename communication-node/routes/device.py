@@ -2,8 +2,6 @@
 Handles the communication between the database and the device endpoints.
 """
 
-import logging
-import sys
 from datetime import datetime
 from flask import Blueprint, jsonify, request
 import psycopg2
@@ -13,19 +11,10 @@ from decorators.validate_auth import validate_auth_header
 from decorators.validate_json_payload import validate_json_payload
 from utils.db import DatabaseManager
 from utils.websocket_client import SocketIOClient
+from utils.logger_config import get_logger
 
 # Configure logging
-logger = logging.getLogger("device_blueprint")
-logger.setLevel(logging.INFO)
-
-stream_handler = logging.StreamHandler(sys.stderr)
-stream_handler.setLevel(logging.INFO)
-
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-stream_handler.setFormatter(formatter)
-
-if not logger.hasHandlers():
-    logger.addHandler(stream_handler)
+logger = get_logger("device_routes")
 
 # Create Blueprint
 device_bp = Blueprint("device", __name__)

@@ -3,24 +3,13 @@ API key validation utilities for the security system.
 Handles validation and tracking of API key usage.
 """
 
-import logging
-import sys
 from datetime import datetime
 import psycopg2
 from utils.db import DatabaseManager
+from utils.logger_config import get_logger
 
 # Configure logging
-logger = logging.getLogger("api_key_validator")
-logger.setLevel(logging.INFO)
-
-stream_handler = logging.StreamHandler(sys.stderr)
-stream_handler.setLevel(logging.INFO)
-
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-stream_handler.setFormatter(formatter)
-
-if not logger.hasHandlers():
-    logger.addHandler(stream_handler)
+logger = get_logger("api_key_validator")
 
 
 def check_api_key(key: str, required_access_level: int = None) -> bool:

@@ -4,8 +4,6 @@ Provides API endpoints for retrieving business and device data.
 """
 
 import hashlib
-import logging
-import sys
 import uuid
 from flask import Blueprint, jsonify, request
 import psycopg2
@@ -15,19 +13,10 @@ from decorators.validate_auth import validate_auth_header
 from decorators.db_retry import retry_on_db_error
 from decorators.validate_json_payload import validate_json_payload
 from utils.db import DatabaseManager
+from utils.logger_config import get_logger
 
 # Configure logging
-logger = logging.getLogger("dashboard_blueprint")
-logger.setLevel(logging.INFO)
-
-stream_handler = logging.StreamHandler(sys.stderr)
-stream_handler.setLevel(logging.INFO)
-
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-stream_handler.setFormatter(formatter)
-
-if not logger.hasHandlers():
-    logger.addHandler(stream_handler)
+logger = get_logger("dashboard_routes")
 
 # Create Blueprint
 dashboard_bp = Blueprint("dashboard", __name__)

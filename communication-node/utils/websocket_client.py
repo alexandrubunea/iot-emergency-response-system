@@ -5,21 +5,11 @@ This client uses the Socket.IO library to establish a connection with the server
 
 import os
 from threading import Lock
-import logging
-import sys
 import socketio
+from utils.logger_config import get_logger
 
-logger = logging.getLogger("websocket_client")
-logger.setLevel(logging.INFO)
-
-stream_handler = logging.StreamHandler(sys.stderr)
-stream_handler.setLevel(logging.INFO)
-
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-stream_handler.setFormatter(formatter)
-
-if not logger.hasHandlers():
-    logger.addHandler(stream_handler)
+# Configure logging
+logger = get_logger("socketio_client")
 
 
 class SocketIOClient:

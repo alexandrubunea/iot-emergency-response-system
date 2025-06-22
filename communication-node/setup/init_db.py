@@ -3,24 +3,14 @@
 Initialize the database that will be used by the security system.
 Creates all required tables with proper constraints and indices.
 """
+
 import sys
 import os
-import logging
 import psycopg2
-
+from utils.logger_config import get_logger
 
 # Setup logging
-logger = logging.getLogger("db_init")
-logger.setLevel(logging.INFO)
-
-stream_handler = logging.StreamHandler(sys.stderr)
-stream_handler.setLevel(logging.INFO)
-
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-stream_handler.setFormatter(formatter)
-
-if not logger.hasHandlers():
-    logger.addHandler(stream_handler)
+logger = get_logger("init_db")
 
 # Add parent directory to path for imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

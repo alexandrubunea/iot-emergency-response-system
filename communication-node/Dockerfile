@@ -9,4 +9,6 @@ COPY . .
 
 EXPOSE 8000
 
+ENV DISABLE_LOGGING=True
+
 CMD ["gunicorn", "-k", "eventlet", "-w", "1", "-b", "0.0.0.0:8000", "app:app"]
