@@ -6,6 +6,7 @@ Provides a robust PostgreSQL connection pool with configuration management.
 import os
 import logging
 import psycopg2
+from dotenv import load_dotenv
 from psycopg2 import pool
 
 # Configure logging
@@ -54,6 +55,8 @@ class DatabaseManager:
         max_conn = max_connections or int(
             os.getenv("DB_MAX_CONNECTIONS", str(DEFAULT_MAX_CONNECTIONS))
         )
+
+        load_dotenv()
 
         try:
             db_config = {

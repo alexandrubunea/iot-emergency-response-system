@@ -50,4 +50,4 @@ if __name__ == "__main__":
     finally:
         DatabaseManager.close_all_connections()
 
-    app.run(host="0.0.0.0")
+    app.run(host="0.0.0.0", port=8000, debug=False)

@@ -1,4 +1,6 @@
 flask
-psycopg2
+psycopg2-binary
 dotenv
 python-socketio
+eventlet
+uvicorn
