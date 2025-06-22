@@ -12,8 +12,6 @@ on:
 jobs:
   build:
     runs-on: 'ubuntu-latest'
-    env:
-      VITE_EXPRESS_API_URL: ${{ secrets.VITE_EXPRESS_API_URL }}
 
     steps:
     - uses: actions/checkout@v2
@@ -35,6 +33,8 @@ jobs:
         file: ./dashboard/frontend.dockerfile
         push: true
         tags: index.docker.io/${{ secrets.AzureAppService_ContainerUsername_3d5c27b6be79441eb53e3316cfc8193e }}/dashboard-frontend:${{ github.sha }}
+        build-args: |
+          VITE_EXPRESS_API_URL=${{ secrets.VITE_EXPRESS_API_URL }}
 
   deploy:
     runs-on: ubuntu-latest
