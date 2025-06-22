@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-if os.getenv("DISABLE_LOGGING") == "true":
+if os.getenv("DISABLE_LOGGING") == "True":
     logging.disable(logging.CRITICAL)
 
 
