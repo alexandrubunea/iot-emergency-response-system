@@ -12,18 +12,20 @@ eventlet.monkey_patch()
 import os
 from threading import Lock
 import logging
+import sys
 import socketio
 
-logger = logging.getLogger("socketio_client")
+logger = logging.getLogger("websocket_client")
 logger.setLevel(logging.INFO)
 
-file_handler = logging.FileHandler("socketio_client.log")
-file_handler.setLevel(logging.INFO)
+stream_handler = logging.StreamHandler(sys.stderr)
+stream_handler.setLevel(logging.INFO)
+
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
 
 if not logger.hasHandlers():
-    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
 
 
 class SocketIOClient:

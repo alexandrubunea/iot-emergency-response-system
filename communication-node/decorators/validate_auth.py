@@ -4,23 +4,24 @@ Validates API keys in request headers against the database.
 """
 
 import logging
+import sys
 from functools import wraps
 from flask import request, jsonify
 
 from utils.api_key import check_api_key
 
 # Configure logging
-logger = logging.getLogger("auth_decorator")
+logger = logging.getLogger("validate_auth_header")
 logger.setLevel(logging.INFO)
 
-file_handler = logging.FileHandler("auth_api.log")
-file_handler.setLevel(logging.INFO)
+stream_handler = logging.StreamHandler(sys.stderr)
+stream_handler.setLevel(logging.INFO)
 
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
 
 if not logger.hasHandlers():
-    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
 
 
 def validate_auth_header(required_access_level=0):

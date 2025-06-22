@@ -4,6 +4,7 @@ Provides API endpoints for device registration and validation.
 """
 
 import logging
+import sys
 from flask import Blueprint, request, jsonify
 import psycopg2
 from psycopg2 import sql
@@ -17,14 +18,14 @@ from utils.db import DatabaseManager
 logger = logging.getLogger("configurator_blueprint")
 logger.setLevel(logging.INFO)
 
-file_handler = logging.FileHandler("blueprints.log")
-file_handler.setLevel(logging.INFO)
+stream_handler = logging.StreamHandler(sys.stderr)
+stream_handler.setLevel(logging.INFO)
 
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
 
 if not logger.hasHandlers():
-    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
 
 # Create Blueprint
 configurator_bp = Blueprint("configurator", __name__)

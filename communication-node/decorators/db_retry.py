@@ -4,6 +4,7 @@ Automatically retries database operations on failure.
 """
 
 import logging
+import sys
 import time
 from functools import wraps
 from flask import jsonify
@@ -12,17 +13,17 @@ import psycopg2
 from utils.db import DatabaseManager
 
 # Configure logging
-logger = logging.getLogger("database_retry_decorator")
+logger = logging.getLogger("db_retry_decorator")
 logger.setLevel(logging.INFO)
 
-file_handler = logging.FileHandler("database.log")
-file_handler.setLevel(logging.INFO)
+stream_handler = logging.StreamHandler(sys.stderr)
+stream_handler.setLevel(logging.INFO)
 
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
 
 if not logger.hasHandlers():
-    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
 
 
 def retry_on_db_error(max_retries=3, delay=1):

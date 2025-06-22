@@ -5,6 +5,7 @@ Provides a robust PostgreSQL connection pool with configuration management.
 
 import os
 import logging
+import sys
 import psycopg2
 from dotenv import load_dotenv
 from psycopg2 import pool
@@ -13,14 +14,14 @@ from psycopg2 import pool
 logger = logging.getLogger("database")
 logger.setLevel(logging.INFO)
 
-file_handler = logging.FileHandler("database.log")
-file_handler.setLevel(logging.INFO)
+stream_handler = logging.StreamHandler(sys.stderr)
+stream_handler.setLevel(logging.INFO)
 
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
 
 if not logger.hasHandlers():
-    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
 
 # Default connection parameters
 DEFAULT_MIN_CONNECTIONS = 1

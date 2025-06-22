@@ -21,13 +21,17 @@ app.register_blueprint(configurator_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(device_bp)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    filename="app.log",
-)
-
 logger = logging.getLogger("app")
+logger.setLevel(logging.INFO)
+
+stream_handler = logging.StreamHandler(sys.stderr)
+stream_handler.setLevel(logging.INFO)
+
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+stream_handler.setFormatter(formatter)
+
+if not logger.hasHandlers():
+    logger.addHandler(stream_handler)
 
 if __name__ == "__main__":
     try:
