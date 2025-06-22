@@ -48,8 +48,7 @@ class SocketIOClient:
         self.express_socket_url = os.getenv("EXPRESS_APP_HOST", "http://localhost:5000")
         self.socket_secret_key = os.getenv("EXPRESS_APP_KEY", "dev-key")
 
-        # Force sync/threading mode
-        self.sio = socketio.Client(async_mode="threading")
+        self.sio = socketio.Client()
         self._connect()
 
         self._initialized = True
