@@ -124,9 +124,10 @@ app.post("/api/solve_malfunction/:id", solveMalfunction);
 app.get("/api/stats", fetchStats);
 app.get("/api/alerts_over_time/:range", fetchAlertsOverTime);
 
-app.get("*", (_: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, "dist", "index.html"));
-});
+// Not useful when frontend and backend are on different servers.
+// app.get("*", (_: Request, res: Response) => {
+//     res.sendFile(path.join(__dirname, "dist", "index.html"));
+// });
 
 httpServer.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
