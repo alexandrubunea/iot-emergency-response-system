@@ -4,3 +4,4 @@ dotenv
 python-socketio
 eventlet
 gunicorn
+websocket-client
