@@ -99,6 +99,7 @@ static void send_event(const char* api_key, const char* type, const char* value,
 	}
 
 	char url[128];
+	// Modify the URL to the correct endpoint
 	snprintf(url, sizeof(url), "https://node.alexandrubunea.cloud/api/send_%s", type);
 
 	send_http_request(url, api_key, post_data);
