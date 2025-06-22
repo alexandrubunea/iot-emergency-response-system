@@ -7,5 +7,5 @@ RUN npm install
 COPY . .
 RUN npm run build-backend
 
-EXPOSE 3000
-CMD ["npm", "run", "start"]
+EXPOSE 8080
+CMD ["node", "dist-server/server.js"]

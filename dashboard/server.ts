@@ -33,7 +33,7 @@ dotenv.config();
 // const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 8080;
 
 // app.use(express.static(path.join(__dirname, "dist")));
 app.use(express.json());
