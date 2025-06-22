@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Request, Response } from "express";
+import { Request, Response, RequestHandler } from "express";
 
 export async function fetchStats(_: Request, res: Response) {
     const API_KEY = process.env.COMMUNICATION_NODE_API_KEY;
@@ -28,23 +28,25 @@ export async function fetchStats(_: Request, res: Response) {
     }
 }
 
-export async function fetchAlertsOverTime(req: Request, res: Response)  {
+export const fetchAlertsOverTime: RequestHandler<{ range: string }> = async (req, res) => {
     const API_KEY = process.env.COMMUNICATION_NODE_API_KEY;
     const API_HOST = process.env.COMMUNICATION_NODE_HOST;
 
     try {
         if (API_HOST === undefined) {
-            return res.status(500).json({
+            res.status(500).json({
                 status: "error",
                 message: "Server configuration error: API host not defined"
             });
+            return;
         }
 
         if (API_KEY === undefined) {
-            return res.status(500).json({
+            res.status(500).json({
                 status: "error",
                 message: "Server configuration error: API key not defined"
             });
+            return;
         }
 
         const range = req.params.range;
@@ -59,22 +61,22 @@ export async function fetchAlertsOverTime(req: Request, res: Response)  {
             data: { range }
         });
 
-        return res.json(response.data);
+        res.json(response.data);
 
     } catch (error) {
         console.error("Error fetching alerts data:", error);
 
         if (axios.isAxiosError(error)) {
             const statusCode = error.response?.status || 500;
-            return res.status(statusCode).json({
+            res.status(statusCode).json({
                 status: "error",
                 message: error.response?.data?.message || "Error communicating with alerts service"
             });
+        } else {
+            res.status(500).json({
+                status: "error",
+                message: "Internal server error while fetching alerts data"
+            });
         }
-
-        return res.status(500).json({
-            status: "error",
-            message: "Internal server error while fetching alerts data"
-        });
     }
-}
+};

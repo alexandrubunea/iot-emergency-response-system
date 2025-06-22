@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"vite\" \"tsx watch server.ts\"",
-    "build": "tsc -b && vite build",
+    "build-backend": "tsc -b",
+    "build-frontend": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "server": "tsx server.ts",
-    "start": "node dist/server.js"
+    "start": "node dist-server/server.js"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
